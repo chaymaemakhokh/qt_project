@@ -1,14 +1,19 @@
-// warehouse.cpp
 #include "warehouse.h"
-#include "product.h"
 #include <algorithm>
+#include <QtGlobal>
+#include "produit_caracteristiques.h"
+#include "produit_cycledevie.h"
+#include "palette.h"
+#include "container.h"
 
 Entrepot::Entrepot(QObject *parent)
     : QObject(parent)
 {
 }
 
+// ----------------------- infos entrepôt ----------------------------
 QString Entrepot::idEntrepot() const { return m_idEntrepot; }
+
 void Entrepot::setIdEntrepot(const QString &id)
 {
     if (m_idEntrepot == id) return;
@@ -17,6 +22,7 @@ void Entrepot::setIdEntrepot(const QString &id)
 }
 
 QString Entrepot::nom() const { return m_nom; }
+
 void Entrepot::setNom(const QString &n)
 {
     if (m_nom == n) return;
@@ -25,6 +31,7 @@ void Entrepot::setNom(const QString &n)
 }
 
 QString Entrepot::adresse() const { return m_adresse; }
+
 void Entrepot::setAdresse(const QString &a)
 {
     if (m_adresse == a) return;
@@ -33,6 +40,7 @@ void Entrepot::setAdresse(const QString &a)
 }
 
 double Entrepot::surface() const { return m_surface; }
+
 void Entrepot::setSurface(double s)
 {
     if (qFuzzyCompare(m_surface, s)) return;
@@ -40,23 +48,27 @@ void Entrepot::setSurface(double s)
     emit entrepotChanged();
 }
 
-const QList<Conteneur *> &Entrepot::conteneurs() const { return m_conteneurs; }
-const QList<Palette *> &Entrepot::palettes() const { return m_palettes; }
+// ----------------------- accès collections ----------------------------
+const QList<Conteneur*>& Entrepot::conteneurs() const { return m_conteneurs; }
+const QList<Palette*>& Entrepot::palettes() const { return m_palettes; }
 
-QList<Product *> Entrepot::tousLesProduits() const
+QList<Product*> Entrepot::tousLesProduits() const
 {
-    QList<Product*> result;
-    for (Conteneur *c : m_conteneurs) {
+    QList<Product*> res;
+    for (Conteneur *c : m_conteneurs)
+    {
         if (!c) continue;
-        for (Product *p : c->produits()) {
-            if (p && !result.contains(p))
-                result.append(p);
+        for (Product *p : c->produits())
+        {
+            if (p && !res.contains(p))
+                res.append(p);
         }
     }
-    return result;
+    return res;
 }
 
-Conteneur *Entrepot::creerConteneur()
+// ----------------------- conteneurs ----------------------------
+Conteneur* Entrepot::creerConteneur()
 {
     auto *c = new Conteneur(this);
     m_conteneurs.append(c);
@@ -72,12 +84,28 @@ void Entrepot::supprimerConteneur(Conteneur *c)
     emit entrepotChanged();
 }
 
-Product *Entrepot::creerProduitDans(Conteneur *c)
+// ----------------------- produits ----------------------------
+Product* Entrepot::creerProduitDans(Conteneur *c, TypeProduit type)
 {
     if (!c) return nullptr;
-    auto *p = new Product(c);
+
+    Product *p = nullptr;
+
+    // 🎯 Décision : QUELS types sont périssables ?
+    bool estPerissable =
+        (type == TypeProduit::Alimentaire ||
+         type == TypeProduit::Medicament);
+
+    if (estPerissable)
+        p = new ProduitAvecCycleDeVie(c);        // périssable → cycle de vie
+    else
+        p = new ProduitAvecCaracteristiques(c);  // non périssable → caractéristiques
+
+    p->setType(type);  // IMPORTANT → garder la cohérence de l’objet
+
     if (c->ajouterProduit(p))
         emit entrepotChanged();
+
     return p;
 }
 
@@ -89,7 +117,8 @@ void Entrepot::supprimerProduitDe(Conteneur *c, Product *p)
     emit entrepotChanged();
 }
 
-Palette *Entrepot::creerPalette()
+// ----------------------- palettes ----------------------------
+Palette* Entrepot::creerPalette()
 {
     auto *p = new Palette(this);
     m_palettes.append(p);
@@ -105,61 +134,78 @@ void Entrepot::supprimerPalette(Palette *p)
     emit entrepotChanged();
 }
 
-ReglesCompatibilite *Entrepot::regles()
+ReglesCompatibilite* Entrepot::regles()
 {
     return &m_regles;
 }
 
-// --------- Algorithmes FIFO & FEFO ---------
-
+// ----------------------- FIFO (First In First Out) ----------------------------
 void Entrepot::genererPalettesFIFO(double capacitePalette)
 {
-    // récupérer tous les produits stockés
     QList<Product*> produits = tousLesProduits();
+
+    // tri par date d’entrée (même si vide pour non périssables → ils iront en fin ou au début selon implémentation)
     std::sort(produits.begin(), produits.end(),
               [](Product *a, Product *b) {
                   return a->dateEntreeStock() < b->dateEntreeStock();
               });
 
-    // vider les palettes existantes
+    // reset palettes
     qDeleteAll(m_palettes);
     m_palettes.clear();
 
-    Palette *courante = creerPalette();
-    courante->setCapaciteMax(capacitePalette);
+    Palette *palette = creerPalette();
+    palette->setCapaciteMax(capacitePalette);
 
-    for (Product *p : produits) {
+    for (Product *p : produits)
+    {
         if (!p) continue;
-        if (!courante->ajouterProduit(p, &m_regles)) {
-            courante = creerPalette();
-            courante->setCapaciteMax(capacitePalette);
-            courante->ajouterProduit(p, &m_regles);
+
+        if (!palette->ajouterProduit(p, &m_regles))
+        {
+            palette = creerPalette();
+            palette->setCapaciteMax(capacitePalette);
+            palette->ajouterProduit(p, &m_regles);
         }
     }
 
     emit entrepotChanged();
 }
 
+// ----------------------- FEFO (First Expired First Out) ----------------------------
 void Entrepot::genererPalettesFEFO(double capacitePalette)
 {
-    QList<Product*> produits = tousLesProduits();
+    QList<Product*> produits;
+
+    // 🎯 FEFO = uniquement les périssables
+    for (Product *p : tousLesProduits())
+    {
+        if (qobject_cast<ProduitAvecCycleDeVie*>(p))
+            produits.append(p);
+    }
+
+    // tri par date de péremption
     std::sort(produits.begin(), produits.end(),
               [](Product *a, Product *b) {
                   return a->datePeremption() < b->datePeremption();
               });
 
+    // reset palettes
     qDeleteAll(m_palettes);
     m_palettes.clear();
 
-    Palette *courante = creerPalette();
-    courante->setCapaciteMax(capacitePalette);
+    Palette *palette = creerPalette();
+    palette->setCapaciteMax(capacitePalette);
 
-    for (Product *p : produits) {
+    for (Product *p : produits)
+    {
         if (!p) continue;
-        if (!courante->ajouterProduit(p, &m_regles)) {
-            courante = creerPalette();
-            courante->setCapaciteMax(capacitePalette);
-            courante->ajouterProduit(p, &m_regles);
+
+        if (!palette->ajouterProduit(p, &m_regles))
+        {
+            palette = creerPalette();
+            palette->setCapaciteMax(capacitePalette);
+            palette->ajouterProduit(p, &m_regles);
         }
     }
 
