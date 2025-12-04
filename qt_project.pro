@@ -11,12 +11,17 @@ CONFIG += c++17
 SOURCES += \
     domain/compatibility.cpp \
     domain/container.cpp \
+    domain/elements_palette.cpp \
     domain/enums.cpp \
     domain/palette.cpp \
     domain/product.cpp \
+    domain/produit_caracteristiques.cpp \
+    domain/produit_cycledevie.cpp \
     domain/warehouse.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    model/warehouseitem.cpp \
+    model/warehousemodel.cpp
 
 HEADERS += \
     domain/compatibility.h \
@@ -28,7 +33,9 @@ HEADERS += \
     domain/produit_caracteristiques.h \
     domain/produit_cycledevie.h \
     domain/warehouse.h \
-    mainwindow.h
+    mainwindow.h \
+    model/warehouseitem.h \
+    model/warehousemodel.h
 
 FORMS += \
     mainwindow.ui

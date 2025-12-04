@@ -1,6 +1,4 @@
-// container.h
 #pragma once
-
 #include <QObject>
 #include <QList>
 #include "enums.h"
@@ -8,30 +6,36 @@
 class Product;
 
 /**
- * @brief Conteneur physique de produits dans l'entrepôt.
+ * @brief Représente un conteneur dans l'entrepôt.
+ * Stocke des Product* polymorphiques.
  */
 class Conteneur : public QObject
 {
     Q_OBJECT
+
 public:
     explicit Conteneur(QObject *parent = nullptr);
+    ~Conteneur() override = default;
 
+    // ----- Identité -----
     QString idConteneur() const;
     void setIdConteneur(const QString &id);
 
+    // ----- Type -----
     TypeConteneur type() const;
     void setType(TypeConteneur t);
 
+    // ----- Capacité -----
     double capaciteMax() const;
     void setCapaciteMax(double c);
 
+    // ----- Produits -----
     const QList<Product*>& produits() const;
 
+    double poidsTotal() const;
     bool peutAjouter(Product *p) const;
     bool ajouterProduit(Product *p);
     void retirerProduit(Product *p);
-
-    double poidsTotal() const;
 
 signals:
     void conteneurChanged();

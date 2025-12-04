@@ -1,4 +1,3 @@
-// compatibility.h
 #pragma once
 
 #include <QObject>
@@ -21,9 +20,10 @@ public:
     TypeProduit typeB() const;
     void setTypeB(TypeProduit t);
 
-    bool compatible() const;
+    bool isCompatible() const;
     void setCompatible(bool c);
 
+    // Vérifie si la règle concerne ce couple
     bool concerne(TypeProduit a, TypeProduit b) const;
 
 private:
@@ -32,16 +32,20 @@ private:
     bool m_compatible {true};
 };
 
+
 /**
- * @brief Ensemble des règles de compatibilité.
+ * @brief Gestionnaire des règles de compatibilité.
  */
 class ReglesCompatibilite : public QObject
 {
     Q_OBJECT
+
 public:
     explicit ReglesCompatibilite(QObject *parent = nullptr);
 
     void ajouterContrainte(const ContrainteCompatibilite &c);
+    void definirCompatibilite(TypeProduit a, TypeProduit b, bool ok);
+
     bool areCompatible(TypeProduit a, TypeProduit b) const;
 
     const QList<ContrainteCompatibilite>& contraintes() const;
