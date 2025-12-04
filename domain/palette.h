@@ -1,9 +1,9 @@
-// palette.h
 #pragma once
 
 #include <QObject>
 #include <QList>
 #include <QDate>
+
 #include "elements_palette.h"
 #include "compatibility.h"
 
@@ -15,6 +15,7 @@ class Product;
 class Palette : public QObject
 {
     Q_OBJECT
+
 public:
     explicit Palette(QObject *parent = nullptr);
 
@@ -31,7 +32,7 @@ public:
     void setCapaciteMax(double c);
 
     const QList<ElementsPalette>& elements() const;
-    QList<ElementsPalette>& elementsRef(); // pour modification interne
+    QList<ElementsPalette>& elementsRef();   // pour modification interne
 
     double poidsTotal() const;
 

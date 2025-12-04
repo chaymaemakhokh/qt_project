@@ -1,4 +1,3 @@
-// warehouse.h
 #pragma once
 
 #include <QObject>
@@ -6,16 +5,21 @@
 #include "container.h"
 #include "palette.h"
 #include "compatibility.h"
+#include "product.h"
+#include "produit_caracteristiques.h"
+#include "produit_cycledevie.h"
 
 /**
- * @brief Entrepôt : racine du modèle, contient conteneurs, produits et palettes.
+ * @brief Entrepôt : racine du modèle, contient conteneurs et palettes.
  */
 class Entrepot : public QObject
 {
     Q_OBJECT
+
 public:
     explicit Entrepot(QObject *parent = nullptr);
 
+    // Infos entrepôt
     QString idEntrepot() const;
     void setIdEntrepot(const QString &id);
 
@@ -28,15 +32,17 @@ public:
     double surface() const;
     void setSurface(double s);
 
+    // Accès aux collections
     const QList<Conteneur*>& conteneurs() const;
     const QList<Palette*>& palettes() const;
 
     QList<Product*> tousLesProduits() const;
 
+    // Création / suppression
     Conteneur* creerConteneur();
     void supprimerConteneur(Conteneur *c);
 
-    Product* creerProduitDans(Conteneur *c);
+    Product* creerProduitDans(Conteneur *c, TypeProduit type);
     void supprimerProduitDe(Conteneur *c, Product *p);
 
     Palette* creerPalette();
