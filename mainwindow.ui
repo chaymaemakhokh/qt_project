@@ -526,11 +526,29 @@
      <x>0</x>
      <y>0</y>
      <width>955</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuCRUD">
+    <property name="title">
+     <string>CRUD</string>
+    </property>
+    <addaction name="actionAjoute_Produit"/>
+    <addaction name="actionAjouter_Conteneur"/>
+   </widget>
+   <addaction name="menuCRUD"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionAjoute_Produit">
+   <property name="text">
+    <string>Ajoute Produit</string>
+   </property>
+  </action>
+  <action name="actionAjouter_Conteneur">
+   <property name="text">
+    <string>Ajouter Conteneur</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
