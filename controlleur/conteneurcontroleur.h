@@ -27,6 +27,7 @@ public:
                                    const std::shared_ptr<Product> &produit);
 
     void debugPrintConteneurs() const;
+     Conteneur* getConteneurParId(const QString &id) const;
 
 private:
     Conteneur* trouverConteneurParId(const QString &id) const;

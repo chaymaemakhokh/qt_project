@@ -78,3 +78,12 @@ void ProduitControleur::debugPrintProduits() const
     }
     qDebug().noquote() << "===============================";
 }
+Product* ProduitControleur::getProduitParId(const QString &id) const
+{
+    for (const auto &p : m_produits)
+    {
+        if (p && p->idProduit() == id)
+            return p.get();
+    }
+    return nullptr;
+}

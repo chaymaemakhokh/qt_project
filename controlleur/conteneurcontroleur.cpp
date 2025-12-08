@@ -18,14 +18,21 @@ void ConteneurControleur::ajouterConteneur(const QString &id,
     m_conteneurs.push_back(c);
 }
 
+Conteneur* ConteneurControleur::getConteneurParId(const QString &id) const
+{
+    return trouverConteneurParId(id);
+}
+
 Conteneur* ConteneurControleur::trouverConteneurParId(const QString &id) const
 {
-    for (const auto &c : m_conteneurs) {
+    for (const auto &c : m_conteneurs)
+    {
         if (c && c->idConteneur() == id)
             return c.get();
     }
     return nullptr;
 }
+
 
 bool ConteneurControleur::ajouterProduitAuConteneur(
     const QString &idConteneur,

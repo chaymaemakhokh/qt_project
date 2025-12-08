@@ -26,15 +26,18 @@ private slots:
 
     void on_actionAjoute_Produit_triggered();
     void on_actionAjouter_Conteneur_triggered();
+    void on_lineEditId_textChanged(const QString &text);
 
 private:
     void rebuildTreeView();
+    void updateDetailsFromFilter();
     Ui::MainWindow *ui;
 
     ProduitControleur   *m_produitCtrl;
     ConteneurControleur *m_conteneurCtrl;
 
     QStandardItemModel  *m_treeModel;
+
 };
 
 #endif // MAINWINDOW_H

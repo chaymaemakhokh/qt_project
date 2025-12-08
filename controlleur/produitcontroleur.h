@@ -38,6 +38,9 @@ public:
         EtatProduit etat);
 
     void debugPrintProduits() const;
+    const QVector<std::shared_ptr<Product>>& produits() const { return m_produits; }
+
+    Product* getProduitParId(const QString &id) const;
 
 private:
     QVector<std::shared_ptr<Product>> m_produits;
