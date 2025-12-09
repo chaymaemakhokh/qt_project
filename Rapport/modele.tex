@@ -10,9 +10,10 @@
 \usepackage{longtable}
 \usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage{listings}
 
-\title{Documentation du modèle \\
-Système de Gestion d'Entrepôt (Warehouse Manager)}
+\title{Documentation du modèle et de l'architecture\\
+\textbf{Système de Gestion d'Entrepôt (Warehouse Manager)}}
 \author{Chaymae MAKHOKH \and Anas BZIOUI}
 \date{\today}
 
@@ -21,26 +22,42 @@ Système de Gestion d'Entrepôt (Warehouse Manager)}
 \tableofcontents
 \newpage
 
+\section*{Introduction}
 
-Le modèle implémente les classes suivantes, telles que définies dans le diagramme UML~:
-
+Ce document décrit la structure du modèle, les principales classes métiers
+et les éléments de l'architecture Qt du projet \emph{Warehouse Manager}.
+L'objectif est de relier clairement :
 \begin{itemize}
-  \item \texttt{ProduitAvecCaracteristiques}
-  \item \texttt{ProduitAvecCycleDeVie}
-  \item \texttt{Product}
-  \item \texttt{ContrainteCompatibilite}
-  \item \texttt{ReglesCompatibilite}
-  \item \texttt{ElementsPalette}
-  \item \texttt{Palette}
-  \item \texttt{Conteneur}
-  \item \texttt{Entrepot}
-  \item les énumérations \texttt{TypeProduit}, \texttt{TypeConteneur}, \texttt{EtatProduit}
+  \item le diagramme UML fourni,
+  \item l'implémentation C++ dans le projet Qt (dossier \verb|domain| et contrôleurs),
+  \item les fonctionnalités visibles dans l'interface utilisateur
+        (dialogs d'ajout, hiérarchie dans la \texttt{QTreeView}, etc.).
 \end{itemize}
 
 Toutes les classes du modèle sont regroupées dans le dossier
-\verb|src/domain| du projet Qt.
+\verb|src/domain| du projet Qt, et la logique applicative dans le dossier
+\verb|controlleur|.
 
-\section{Vue d'ensemble du modèle}
+Les classes principales implémentées sont~:
+\begin{itemize}
+  \item \texttt{Product} (classe abstraite),
+  \item \texttt{ProduitAvecCaracteristiques},
+  \item \texttt{ProduitAvecCycleDeVie},
+  \item \texttt{Conteneur},
+  \item \texttt{Palette}, \texttt{ElementsPalette},
+  \item \texttt{Entrepot},
+  \item \texttt{ContrainteCompatibilite}, \texttt{ReglesCompatibilite},
+  \item les énumérations \texttt{TypeProduit}, \texttt{TypeConteneur},
+        \texttt{EtatProduit},
+  \item les contrôleurs \texttt{ProduitControleur} et
+        \texttt{ConteneurControleur},
+  \item les vues Qt : \texttt{MainWindow}, \texttt{ajouterProduit},
+        \texttt{ajouterconteneur}.
+\end{itemize}
+
+\section{Vue d'ensemble de l'architecture}
+
+\subsection{Structure métier}
 
 Le modèle représente la structure suivante~:
 
@@ -48,46 +65,80 @@ Le modèle représente la structure suivante~:
   \item Un \textbf{Entrepôt} (\texttt{Entrepot}) contient plusieurs
         \textbf{Conteneurs} (\texttt{Conteneur}) et plusieurs
         \textbf{Palettes} (\texttt{Palette}).
-  \item Chaque \textbf{Conteneur} contient une liste de \textbf{Produits}
-        (\texttt{Product}).
-  \item Chaque \textbf{Palette} contient un ensemble d'\textbf{Éléments de palette}
-        (\texttt{ElementsPalette}) qui eux-mêmes référencent des produits.
-  \item Les \textbf{Produits} sont décrits par deux composantes :
-        \texttt{ProduitAvecCaracteristiques} et \texttt{ProduitAvecCycleDeVie}.
-  \item Les compatibilités entre produits sont définies par des
-        \texttt{ContrainteCompatibilite}, regroupées dans
+  \item Chaque \textbf{Conteneur} contient une liste de \textbf{produits}
+        (\texttt{Product*}), qui peuvent être de deux types concrets~:
+        \texttt{ProduitAvecCaracteristiques} (non périssable) ou
+        \texttt{ProduitAvecCycleDeVie} (périssable).
+  \item Chaque \textbf{Palette} contient un ensemble d'\textbf{éléments}
+        (\texttt{ElementsPalette}) qui référencent des produits avec des quantités.
+  \item Les compatibilités entre types de produits sont exprimées via
+        des \texttt{ContrainteCompatibilite}, regroupées dans
         \texttt{ReglesCompatibilite}.
 \end{itemize}
 
+\subsection{Structure logicielle}
+
+L'application suit une architecture inspirée MVC~:
+
+\begin{itemize}
+  \item \textbf{Modèle} : classes du dossier \verb|domain|
+        (\texttt{Product}, \texttt{Conteneur}, \texttt{Palette},
+        \texttt{Entrepot}, etc.).
+  \item \textbf{Contrôleurs} :
+        \begin{itemize}
+          \item \texttt{ProduitControleur} gère la liste des produits
+                en mémoire et fournit des méthodes de création.
+          \item \texttt{ConteneurControleur} gère la liste des conteneurs
+                et permet d’y ajouter des produits.
+        \end{itemize}
+  \item \textbf{Vues Qt} :
+        \begin{itemize}
+          \item \texttt{MainWindow} : fenêtre principale avec
+                \texttt{QTreeView} pour visualiser la hiérarchie
+                conteneurs / produits.
+          \item \texttt{ajouterProduit} : boîte de dialogue pour
+                la création d’un produit.
+          \item \texttt{ajouterconteneur} : boîte de dialogue pour
+                la création d’un conteneur.
+        \end{itemize}
+\end{itemize}
+
+Les contrôleurs servent de \og pont \fg{} entre les vues Qt
+et le modèle métier.
+
 \section{Énumérations}
+
+Toutes les énumérations sont définies dans \texttt{enums.h} et
+leurs fonctions utilitaires dans \texttt{enums.cpp}. Elles sont
+déclarées comme métatypes Qt via \verb|Q_DECLARE_METATYPE| afin
+de pouvoir être stockées dans des \texttt{QVariant} et utilisées
+dans les \texttt{QComboBox} de l'interface.
 
 \subsection{\texttt{TypeProduit}}
 
 \paragraph{Rôle}
-Enumération représentant le type d'un produit. Elle correspond au bloc
-\emph{<<enum>> TypeProduit} du diagramme.
+Enumération représentant le type d'un produit.
 
 \paragraph{Valeurs}
 \begin{itemize}
   \item \texttt{Alimentaire}
   \item \texttt{Electronique}
   \item \texttt{Medicament}
-  \item \texttt{Autre} (valeur par défaut pour les cas non précisés)
+  \item \texttt{Autre} (valeur par défaut)
 \end{itemize}
 
 \paragraph{Utilisation}
 \begin{itemize}
-  \item Attribut \texttt{type} de la classe \texttt{Product}.
-  \item Attributs \texttt{typeA} et \texttt{typeB} de la classe
+  \item Attribut \texttt{m\_type} dans \texttt{Product}.
+  \item Attributs \texttt{m\_typeA} et \texttt{m\_typeB} dans
         \texttt{ContrainteCompatibilite}.
-  \item Utilisé dans les méthodes de compatibilité de \texttt{ReglesCompatibilite}.
 \end{itemize}
 
 \subsection{\texttt{TypeConteneur}}
 
 \paragraph{Rôle}
-Enumération représentant le type d'un conteneur (normal, froid, fragile, etc.).
-Elle correspond au bloc \emph{<<enum>> TypeConteneur} dans le diagramme.
+Enumération représentant le type d'un conteneur
+(normal, froid, fragile, etc.).
 
 \paragraph{Valeurs}
 \begin{itemize}
@@ -98,13 +149,14 @@ Elle correspond au bloc \emph{<<enum>> TypeConteneur} dans le diagramme.
 \end{itemize}
 
 \paragraph{Utilisation}
-Attribut \texttt{type} dans la classe \texttt{Conteneur}.
+Attribut \texttt{m\_type} dans la classe \texttt{Conteneur},
+et dans l'interface pour alimenter la \texttt{QComboBox}
+\texttt{TypeConteneur\_2}.
 
 \subsection{\texttt{EtatProduit}}
 
 \paragraph{Rôle}
-Enumération représentant l'état d'un produit. Elle correspond au bloc
-\emph{<<enum>> EtatProduit} du diagramme.
+Enumération représentant l'état d'un produit.
 
 \paragraph{Valeurs}
 \begin{itemize}
@@ -113,367 +165,328 @@ Enumération représentant l'état d'un produit. Elle correspond au bloc
 \end{itemize}
 
 \paragraph{Utilisation}
-\begin{itemize}
-  \item Attribut \texttt{etat} dans \texttt{ProduitAvecCaracteristiques}.
-  \item Attribut \texttt{etat} dans \texttt{ProduitAvecCycleDeVie}.
-\end{itemize}
+Retour par les méthodes virtuelles \texttt{etat()} dans
+\texttt{Product} et stocké dans les sous-classes concrètes.
 
-\section{Classes de données simples}
+\section{Modèle de produits}
 
-\subsection{\texttt{ProduitAvecCaracteristiques}}
+\subsection{\texttt{Product} (classe abstraite)}
 
 \paragraph{Rôle}
-Classe de données représentant les caractéristiques physiques et les conditions
-de conservation d'un produit. Elle correspond à la classe
-\emph{ProduitAvecCaracteristiques} reliée à \texttt{Product} par une
-composition (losange plein) dans le diagramme UML.
-
-\paragraph{Attributs}
-\begin{itemize}
-  \item \texttt{double m\_poids}~: poids du produit.
-  \item \texttt{double m\_volume}~: volume occupé par le produit.
-  \item \texttt{QString m\_conditionsConservation}~: texte décrivant les
-        conditions de conservation (ex. \og -18°C \fg).
-  \item \texttt{EtatProduit m\_etat}~: état du produit (stocké/expédié).
-\end{itemize}
-
-\paragraph{Méthodes principales}
-La classe est implémentée uniquement dans un fichier d'en-tête
-(\texttt{produit\_caracteristiques.h}) avec des accesseurs inline~:
-
-\begin{itemize}
-  \item Getters et setters pour chaque attribut~:
-        \texttt{poids()}, \texttt{setPoids()}, \texttt{volume()},
-        \texttt{setVolume()}, \texttt{conditionsConservation()},
-        \texttt{setConditionsConservation()}, \texttt{etat()},
-        \texttt{setEtat()}.
-\end{itemize}
-
-\paragraph{Lien avec le diagramme}
-\begin{itemize}
-  \item Tous les attributs de la boîte UML \emph{ProduitAvecCaracteristiques}
-        sont présents.
-  \item La composition 1--1 avec \texttt{Product} est réalisée par deux
-        attributs privés dans \texttt{Product}~:
-        \texttt{ProduitAvecCaracteristiques m\_caracteristiques;} et
-        des méthodes d'accès \texttt{caracteristiques()}.
-\end{itemize}
-
-\subsection{\texttt{ProduitAvecCycleDeVie}}
-
-\paragraph{Rôle}
-Classe de données représentant le cycle de vie d'un produit
-(dates et état). Elle correspond à la classe
-\emph{ProduitAvecCycleDeVie} reliée à \texttt{Product} par une composition
-dans le diagramme.
-
-\paragraph{Attributs}
-\begin{itemize}
-  \item \texttt{QDate m\_dateEntreeStock}
-  \item \texttt{QDate m\_datePeremption}
-  \item \texttt{EtatProduit m\_etat}
-\end{itemize}
-
-\paragraph{Méthodes}
-Getters / setters inline dans \texttt{produit\_cycledevie.h}~:
-\texttt{dateEntreeStock()}, \texttt{setDateEntreeStock()},
-\texttt{datePeremption()}, \texttt{setDatePeremption()},
-\texttt{etat()}, \texttt{setEtat()}.
-
-\paragraph{Lien UML}
-\begin{itemize}
-  \item Reprise exacte des attributs du diagramme.
-  \item Composition 1--1 avec \texttt{Product} via l'attribut
-        \texttt{ProduitAvecCycleDeVie m\_cycleDeVie;} dans \texttt{Product}.
-\end{itemize}
-
-\subsection{\texttt{ElementsPalette}}
-
-\paragraph{Rôle}
-Élément de la classe \texttt{Palette} correspondant à la boîte
-\emph{ElementsPalette} du diagramme (quantité + liste de produits).
-
-\paragraph{Attributs}
-\begin{itemize}
-  \item \texttt{int m\_quantite}~: quantité de produits.
-  \item \texttt{QList<Product*> m\_produits}~: liste de pointeurs vers les
-        produits concernés.
-\end{itemize}
-
-\paragraph{Méthodes}
-Getters / setters simples pour la quantité et la liste de produits, définis
-dans \texttt{elements\_palette.h}.
-
-\paragraph{Lien UML}
-L'association 1--* entre \texttt{Palette} et \texttt{ElementsPalette} est
-implémentée par l'attribut~:
-\begin{itemize}
-  \item \texttt{QList<ElementsPalette> m\_elements;} dans \texttt{Palette}.
-\end{itemize}
-
-\section{Classes métier principales}
-
-\subsection{\texttt{Product}}
-
-\paragraph{Rôle}
-Classe centrale représentant un produit manipulé dans l'entrepôt.
-Elle hérite de \texttt{QObject} pour pouvoir émettre le signal
-\texttt{productChanged()} et être reliée à l'interface Qt par signaux/slots.
-Elle correspond à la classe \emph{Produit} du diagramme UML.
+Classe de base abstraite représentant un produit de l'entrepôt.
+Elle ne contient que l'identité commune, le type et la capacité
+maximale. Les aspects physiques et les dates sont gérés dans les
+sous-classes.
 
 \paragraph{Attributs privés}
 \begin{itemize}
-  \item \texttt{QString m\_idProduit} (UML~: \texttt{IdProduit : String})
-  \item \texttt{QString m\_nom} (UML~: \texttt{Nom : String})
-  \item \texttt{TypeProduit m\_type} (UML~: \texttt{type : TypeProduit})
-  \item \texttt{double m\_capaciteMax} (UML~: \texttt{capaciteMax : Double})
-  \item \texttt{ProduitAvecCaracteristiques m\_caracteristiques}
-  \item \texttt{ProduitAvecCycleDeVie m\_cycleDeVie}
+  \item \texttt{QString m\_idProduit}
+  \item \texttt{QString m\_nom}
+  \item \texttt{TypeProduit m\_type}
+  \item \texttt{double m\_capaciteMax}
 \end{itemize}
 
 \paragraph{Méthodes publiques}
 \begin{itemize}
-  \item Accesseurs pour les attributs d'identité et de type~:
-        \texttt{idProduit()}, \texttt{setIdProduit()}, \texttt{nom()},
-        \texttt{setNom()}, \texttt{type()}, \texttt{setType()},
-        \texttt{capaciteMax()}, \texttt{setCapaciteMax()}.
-  \item Accès aux sous-objets~:
-        \texttt{caracteristiques()}, \texttt{cycleDeVie()}.
-  \item Raccourcis vers les attributs des sous-objets~:
-        \texttt{poids()}, \texttt{volume()}, \texttt{dateEntreeStock()},
-        \texttt{datePeremption()}, \texttt{etat()}.
-  \item Méthodes métier~:
+  \item Accesseurs : \texttt{idProduit()}, \texttt{setIdProduit()},
+        \texttt{nom()}, \texttt{setNom()}, \texttt{type()},
+        \texttt{setType()}, \texttt{capaciteMax()},
+        \texttt{setCapaciteMax()}.
+  \item Méthodes virtuelles pures (polymorphisme)~:
         \begin{itemize}
-          \item \texttt{bool estPerime(const QDate\& aujourdHui) const;}
-          \item \texttt{int joursAvantPeremption(const QDate\& aujourdHui) const;}
+          \item \texttt{virtual double poids() const = 0;}
+          \item \texttt{virtual double volume() const = 0;}
+          \item \texttt{virtual QDate dateEntreeStock() const = 0;}
+          \item \texttt{virtual QDate datePeremption() const = 0;}
+          \item \texttt{virtual EtatProduit etat() const = 0;}
         \end{itemize}
+  \item Méthode utilitaire :
+        \texttt{bool estPerime(const QDate\& jour) const;}
+        qui teste la validité de \texttt{datePeremption()}.
 \end{itemize}
 
 \paragraph{Signal}
 \begin{itemize}
-  \item \texttt{void productChanged();}~: émis lorsque l'une des propriétés
-        du produit est modifiée.
+  \item \texttt{void productChanged();} émis à chaque modification.
 \end{itemize}
 
-\paragraph{Lien UML}
-\begin{itemize}
-  \item Tous les attributs et types du bloc \emph{Produit} sont repris.
-  \item Les compositions vers \texttt{ProduitAvecCaracteristiques} et
-        \texttt{ProduitAvecCycleDeVie} sont implémentées par des membres
-        internes.
-  \item L'association 0..* vers \texttt{Conteneur} et \texttt{Palette}
-        n'est pas codée directement dans \texttt{Product} mais via les
-        collections dans \texttt{Conteneur} et \texttt{Palette} (relation
-        unidirectionnelle côté conteneur/palette).
-\end{itemize}
+Ce design permet de manipuler tous les produits via des
+\texttt{Product*} (par exemple dans les conteneurs), tout en
+déléguant le comportement concret aux sous-classes.
 
-\subsection{\texttt{ContrainteCompatibilite}}
+\subsection{\texttt{ProduitAvecCaracteristiques}}
 
 \paragraph{Rôle}
-Représente une règle élémentaire de compatibilité entre deux types de produit.
-Elle correspond à la classe \emph{ContrainteCompatibilite} du diagramme UML.
+Produit non périssable : poids, volume, conditions de conservation
+et état. La date de péremption n'est pas utilisée.
 
-\paragraph{Attributs}
+\paragraph{Attributs spécifiques}
 \begin{itemize}
-  \item \texttt{TypeProduit m\_typeA} (UML~: \texttt{typeA : TypeProduit})
-  \item \texttt{TypeProduit m\_typeB} (UML~: \texttt{typeB : TypeProduit})
-  \item \texttt{bool m\_compatible} (UML~: \texttt{compatible : bool})
+  \item \texttt{double m\_poids}
+  \item \texttt{double m\_volume}
+  \item \texttt{QString m\_conditions}
+  \item \texttt{QDate m\_dateEntreeStock}
+  \item \texttt{EtatProduit m\_etat}
 \end{itemize}
 
-\paragraph{Méthodes}
+\paragraph{Redéfinitions}
 \begin{itemize}
-  \item Getters / setters pour les trois attributs.
-  \item \texttt{bool concerne(TypeProduit a, TypeProduit b) const;}~:
-        teste si la contrainte s'applique au couple de types donné (ordre
-        indifférent).
+  \item \texttt{double poids() const override;}
+  \item \texttt{double volume() const override;}
+  \item \texttt{QDate dateEntreeStock() const override;}
+  \item \texttt{QDate datePeremption() const override;} (renvoie une date
+        invalide pour indiquer \og non périssable \fg).
+  \item \texttt{EtatProduit etat() const override;}
 \end{itemize}
 
-\paragraph{Lien UML}
-La classe reprend exactement les attributs de la boîte UML correspondante
-et est utilisée par \texttt{ReglesCompatibilite} avec une multiplicité 1..*.
+\paragraph{Utilisation}
+Ce type est choisi lorsque l'utilisateur coche
+\og Produit avec des caractéristiques \fg{} dans la
+boîte de dialogue \texttt{ajouterProduit}. Les champs
+\texttt{Poids}, \texttt{Volume}, \texttt{ConditionsConservation},
+\texttt{DateEntreeStock} sont alors utilisés, et le champ
+\texttt{DatePeremption} est masqué.
 
-\subsection{\texttt{ReglesCompatibilite}}
+\subsection{\texttt{ProduitAvecCycleDeVie}}
 
 \paragraph{Rôle}
-Contient l'ensemble des règles de compatibilité entre types de produits.
-Elle correspond à \emph{ReglesCompatibilite} dans le diagramme, en
-association 1..* avec \texttt{ContrainteCompatibilite}.
+Produit périssable : possède un cycle de vie complet avec
+dates d'entrée en stock et de péremption.
 
-\paragraph{Attributs}
+\paragraph{Attributs spécifiques}
 \begin{itemize}
-  \item \texttt{QList<ContrainteCompatibilite> m\_contraintes;}
+  \item \texttt{double m\_poids}
+  \item \texttt{double m\_volume}
+  \item \texttt{QDate m\_entree}
+  \item \texttt{QDate m\_peremption}
+  \item \texttt{EtatProduit m\_etat}
 \end{itemize}
 
-\paragraph{Méthodes}
-\begin{itemize}
-  \item \texttt{void ajouterContrainte(const ContrainteCompatibilite\& c);}~:
-        ajoute une règle.
-  \item \texttt{bool areCompatible(TypeProduit a, TypeProduit b) const;}~:
-        renvoie \texttt{true} si les deux types sont compatibles selon les
-        contraintes enregistrées.
-  \item \texttt{const QList<ContrainteCompatibilite>\& contraintes() const;}~:
-        accès en lecture à la liste des contraintes.
-\end{itemize}
+\paragraph{Redéfinitions}
+Même principe que la classe précédente, mais ici
+\texttt{datePeremption()} renvoie une date valide et permet
+d'appliquer des stratégies FEFO (First Expire First Out).
 
-\paragraph{Signal}
-\begin{itemize}
-  \item \texttt{void rulesChanged();}~: émis lorsque les règles sont modifiées.
-\end{itemize}
-
-\paragraph{Lien UML}
-\begin{itemize}
-  \item La relation 1..* vers \texttt{ContrainteCompatibilite} est implémentée
-        par la liste \texttt{m\_contraintes}.
-  \item \texttt{ReglesCompatibilite} est utilisée par \texttt{Entrepot} et
-        \texttt{Palette} pour vérifier la compatibilité des produits lors de
-        la construction des palettes (algorithmes FIFO/FEFO).
-\end{itemize}
-
-\subsection{\texttt{Palette}}
-
-\paragraph{Rôle}
-Représente une palette d'expédition, contenant un ensemble d'éléments
-(\texttt{ElementsPalette}) et donc de produits. Elle correspond à la classe
-\emph{Palette} du diagramme UML.
-
-\paragraph{Attributs}
-\begin{itemize}
-  \item \texttt{QString m\_idPalette} (UML~: \texttt{IdPalette : String})
-  \item \texttt{QString m\_destination} (UML~: \texttt{Destination : String})
-  \item \texttt{QDate m\_dateEnvoiPrevue} (UML~: \texttt{dateEnvoiPrevue : QDate})
-  \item \texttt{double m\_capaciteMax} (UML~: \texttt{capaciteMax : Double})
-  \item \texttt{QList<ElementsPalette> m\_elements}
-  \item Les contraintes de compatibilité sont gérées via \texttt{ReglesCompatibilite},
-        passée en paramètre aux méthodes d'ajout.
-\end{itemize}
-
-\paragraph{Méthodes}
-\begin{itemize}
-  \item Accesseurs classiques pour les attributs d'identité et de date.
-  \item \texttt{const QList<ElementsPalette>\& elements() const;} et
-        \texttt{QList<ElementsPalette>\& elementsRef();} pour accéder aux éléments.
-  \item \texttt{double poidsTotal() const;}~: calcule le poids total de la palette
-        en sommant les produits contenus dans \texttt{m\_elements}.
-  \item \texttt{bool peutAjouter(Product *p, const ReglesCompatibilite *regles) const;}~:
-        vérifie si un produit peut être ajouté en respectant la capacité max
-        et les règles de compatibilité.
-  \item \texttt{bool ajouterProduit(Product *p, const ReglesCompatibilite *regles);}~:
-        ajoute le produit à la palette (en augmentant la quantité si nécessaire).
-\end{itemize}
-
-\paragraph{Signal}
-\begin{itemize}
-  \item \texttt{void paletteChanged();}~: émis lorsqu'on modifie le contenu
-        ou les propriétés de la palette.
-\end{itemize}
-
-\paragraph{Lien UML}
-\begin{itemize}
-  \item Les attributs correspondent à ceux de la boîte \emph{Palette}.
-  \item La relation 1..* vers \texttt{ElementsPalette} est implémentée par
-        \texttt{QList<ElementsPalette> m\_elements;} avec une multiplicité 0..*.
-  \item La relation vers \texttt{ContrainteCompatibilite} est représentée
-        par l'utilisation de \texttt{ReglesCompatibilite} lors des ajouts de produits.
-\end{itemize}
+\section{Conteneurs, palettes et entrepôt}
 
 \subsection{\texttt{Conteneur}}
 
 \paragraph{Rôle}
-Représente un conteneur physique dans l'entrepôt. Il correspond à la classe
-\emph{Conteneur} du diagramme UML.
+Représente un conteneur physique dans l'entrepôt.
 
 \paragraph{Attributs}
 \begin{itemize}
-  \item \texttt{QString m\_idConteneur} (UML~: \texttt{IdConteneur : String})
-  \item \texttt{TypeConteneur m\_type} (UML~: \texttt{type : TypeConteneur})
-  \item \texttt{double m\_capaciteMax} (UML~: \texttt{capaciteMax : Double})
-  \item \texttt{QList<Product*> m\_produits} (UML~: \texttt{Produits : List<Produit>})
+  \item \texttt{QString m\_idConteneur}
+  \item \texttt{TypeConteneur m\_type}
+  \item \texttt{double m\_capaciteMax}
+  \item \texttt{QList<Product*> m\_produits}
 \end{itemize}
 
-\paragraph{Méthodes}
+\paragraph{Méthodes principales}
 \begin{itemize}
-  \item Accesseurs pour \texttt{idConteneur}, \texttt{type},
-        \texttt{capaciteMax}, \texttt{produits()}.
-  \item \texttt{double poidsTotal() const;}~: somme des poids des produits.
-  \item \texttt{bool peutAjouter(Product *p) const;}~: vérifie la capacité max.
-  \item \texttt{bool ajouterProduit(Product *p);}~: ajoute un produit si possible.
-  \item \texttt{void retirerProduit(Product *p);}~: retire un produit.
+  \item Accesseurs classiques sur l'identité et le type.
+  \item \texttt{const QList<Product*>\& produits() const;}~: accès en lecture.
+  \item \texttt{double poidsTotal() const;}~: somme des poids.
+  \item \texttt{bool peutAjouter(Product *p) const;}~: vérifie si le poids
+        total reste inférieur à \texttt{m\_capaciteMax}.
+  \item \texttt{bool ajouterProduit(Product *p);}~: ajoute le produit ici
+        si \texttt{peutAjouter()} est vrai.
+  \item \texttt{void retirerProduit(Product *p);}~: retire toutes les occurrences.
 \end{itemize}
 
 \paragraph{Signaux}
 \begin{itemize}
-  \item \texttt{void conteneurChanged();}
-  \item \texttt{void produitAjoute(Product *p);}
-  \item \texttt{void produitRetire(Product *p);}
+  \item \texttt{conteneurChanged()}, \texttt{produitAjoute(Product*)},
+        \texttt{produitRetire(Product*)}.
 \end{itemize}
 
-\paragraph{Lien UML}
-La composition entre \texttt{Entrepot} et \texttt{Conteneur} (1..* conteneurs
-par entrepôt) est implémentée par l'attribut
-\texttt{QList<Conteneur*> m\_conteneurs;} dans \texttt{Entrepot}. La relation
-0..* vers \texttt{Product} est implémentée par \texttt{m\_produits}.
+\subsection{\texttt{ElementsPalette} et \texttt{Palette}}
+
+Ces classes implémentent la logique de palettes d'expédition
+(liste d'éléments avec quantités, vérification des règles de
+compatibilité, etc.), en conformité avec le diagramme UML.
+Elles ne sont pas détaillées ici car la fonctionnalité principale
+développée actuellement concerne surtout la partie
+\emph{conteneurs / produits} et la visualisation dans l'interface.
 
 \subsection{\texttt{Entrepot}}
 
 \paragraph{Rôle}
-Racine du modèle hiérarchique~: représente l'entrepôt global. Il correspond
-à la classe \emph{Entrepot} du diagramme UML et constitue le niveau 1 de
-l'arborescence.
+Racine logique du modèle (niveau 1 de l'arborescence). Contient
+les listes de conteneurs et de palettes, ainsi que l'ensemble
+des règles de compatibilité (\texttt{ReglesCompatibilite}).
 
-\paragraph{Attributs}
+\section{Contrôleurs}
+
+\subsection{\texttt{ProduitControleur}}
+
+\paragraph{Rôle}
+Gère la collection de produits en mémoire et fournit des méthodes
+de création utilisées par l'interface graphique.
+
+\paragraph{Attribut interne}
 \begin{itemize}
-  \item \texttt{QString m\_idEntrepot} (UML~: \texttt{IdEntrepot : String})
-  \item \texttt{QString m\_nom} (UML~: \texttt{Nom : String})
-  \item \texttt{QString m\_adresse} (UML~: \texttt{Adresse : String})
-  \item \texttt{double m\_surface} (UML~: \texttt{Surface : Double})
-  \item \texttt{QList<Conteneur*> m\_conteneurs} (UML~: \texttt{allConteneurs})
-  \item \texttt{QList<Palette*> m\_palettes} (UML~: \texttt{allPalette})
-  \item \texttt{ReglesCompatibilite m\_regles} (ensemble des contraintes).
+  \item \texttt{QVector<std::shared_ptr<Product>> m\_produits;}
 \end{itemize}
 
 \paragraph{Méthodes}
 \begin{itemize}
-  \item Accesseurs pour l'identité et l'adresse de l'entrepôt.
-  \item Accès aux listes~: \texttt{const QList<Conteneur*>\& conteneurs() const;},
-        \texttt{const QList<Palette*>\& palettes() const;}.
-  \item \texttt{QList<Product*> tousLesProduits() const;}~: construit la liste
-        de tous les produits à partir des conteneurs.
-  \item Gestion des conteneurs~:
-        \texttt{Conteneur* creerConteneur();},
-        \texttt{void supprimerConteneur(Conteneur *c);}.
-  \item Gestion des produits~:
-        \texttt{Product* creerProduitDans(Conteneur *c);},
-        \texttt{void supprimerProduitDe(Conteneur *c, Product *p);}.
-  \item Gestion des palettes~:
-        \texttt{Palette* creerPalette();},
-        \texttt{void supprimerPalette(Palette *p);}.
-  \item Accès aux règles de compatibilité~:
-        \texttt{ReglesCompatibilite* regles();}.
-  \item Algorithmes de construction automatique des palettes~:
+  \item \texttt{std::shared\_ptr<Product> ajouterProduitAvecCaracteristiques(...);}
+  \item \texttt{std::shared\_ptr<Product> ajouterProduitAvecCycleDeVie(...);}
+  \item \texttt{void debugPrintProduits() const;}~: affichage dans la
+        sortie de débogage Qt (liste des produits avec leurs propriétés).
+\end{itemize}
+
+Les méthodes d'ajout retournent un \texttt{shared\_ptr<Product>} afin
+que le produit puisse être immédiatement ajouté dans un conteneur
+via le \texttt{ConteneurControleur}.
+
+\subsection{\texttt{ConteneurControleur}}
+
+\paragraph{Rôle}
+Gère la liste des conteneurs et permet d'y ajouter des produits.
+
+\paragraph{Attribut interne}
+\begin{itemize}
+  \item \texttt{QVector<std::shared\_ptr<Conteneur>> m\_conteneurs;}
+\end{itemize}
+
+\paragraph{Méthodes}
+\begin{itemize}
+  \item \texttt{void ajouterConteneur(const QString\&, TypeConteneur, double);}
+  \item \texttt{const QVector<std::shared\_ptr<Conteneur>>\& conteneurs() const;}
+  \item \texttt{bool ajouterProduitAuConteneur(const QString\& idConteneur,
+            const std::shared\_ptr<Product>\& produit);}
+  \item \texttt{void debugPrintConteneurs() const;}
+\end{itemize}
+
+\paragraph{Principe}
+Lorsqu'un produit est créé dans la boîte de dialogue
+\texttt{ajouterProduit}, l'utilisateur peut choisir un conteneur
+dans une \texttt{QComboBox}. Le contrôleur va alors retrouver
+le conteneur via son identifiant et y ajouter le produit
+(\texttt{Conteneur::ajouterProduit}).
+
+\section{Interface Qt et intégration du modèle}
+
+\subsection{\texttt{ajouterconteneur}}
+
+\paragraph{Rôle}
+Boîte de dialogue (\texttt{QDialog}) utilisée pour créer un nouveau
+conteneur.
+
+\paragraph{Éléments d'interface}
+\begin{itemize}
+  \item \texttt{IdConteneur\_2} : \texttt{QLineEdit} pour l'identifiant.
+  \item \texttt{TypeConteneur\_2} : \texttt{QComboBox} alimentée par les
+        valeurs de \texttt{TypeConteneur} via \texttt{QVariant}.
+  \item \texttt{CapaciteMax\_2} : \texttt{QDoubleSpinBox}.
+  \item Boutons \texttt{Créer} et \texttt{Annuler}.
+\end{itemize}
+
+\paragraph{Fonctionnement}
+Lors du clic sur \og Créer \fg{}, la méthode
+\texttt{on\_Creer\_clicked()} lit les valeurs des widgets et appelle
+\texttt{ConteneurControleur::ajouterConteneur}. Le dialog renvoie
+\texttt{QDialog::Accepted}.
+
+\subsection{\texttt{ajouterProduit}}
+
+\paragraph{Rôle}
+Boîte de dialogue de création de produit. Elle gère deux types
+de produits~: avec caractéristiques ou avec cycle de vie.
+
+\paragraph{Éléments principaux}
+\begin{itemize}
+  \item Deux \texttt{QCheckBox} exclusives :
         \begin{itemize}
-          \item \texttt{void genererPalettesFIFO(double capacitePalette);}\\
-                tri des produits par date d'entrée (\emph{First In First Out}).
-          \item \texttt{void genererPalettesFEFO(double capacitePalette);}\\
-                tri des produits par date de péremption (\emph{First Expire First Out}).
+          \item \texttt{checkBox}~: \og Produit avec des caractéristiques \fg{}
+          \item \texttt{checkBox\_2}~: \og Produit avec cycle de vie \fg{}
+        \end{itemize}
+  \item \texttt{TypeProduit\_2} : \texttt{QComboBox} alimentée par
+        \texttt{TypeProduit}.
+  \item \texttt{Etat\_2} : \texttt{QComboBox} alimentée par
+        \texttt{EtatProduit}.
+  \item Champs numériques : \texttt{CapaciteMax\_2}, \texttt{Poids\_2},
+        \texttt{Volume\_2}.
+  \item Dates : \texttt{DateEntree\_2}, \texttt{DatePeremption\_2}.
+  \item \texttt{ConditionsConservation\_2} :
+        \texttt{QPlainTextEdit} pour les conditions.
+  \item \texttt{DansQuelConteneur\_2} : \texttt{QComboBox} listant tous les
+        identifiants de conteneurs existants, obtenus auprès du
+        \texttt{ConteneurControleur}.
+\end{itemize}
+
+\paragraph{Comportement dynamique}
+\begin{itemize}
+  \item Les deux cases à cocher sont mutuellement exclusives.
+  \item Selon le type choisi :
+        \begin{itemize}
+          \item pour \textbf{Produit avec caractéristiques} :
+                les champs \texttt{ConditionsConservation} sont visibles,
+                \texttt{DatePeremption} est cachée.
+          \item pour \textbf{Produit avec cycle de vie} :
+                \texttt{DatePeremption} est visible,
+                \texttt{ConditionsConservation} est cachée.
+        \end{itemize}
+  \item Lors du clic sur \og Créer \fg{} :
+        \begin{itemize}
+          \item le dialog appelle la méthode appropriée du
+                \texttt{ProduitControleur} pour créer l'objet métier,
+          \item si un conteneur est sélectionné dans
+                \texttt{DansQuelConteneur\_2}, le produit est ajouté à ce
+                conteneur via \texttt{ConteneurControleur::ajouterProduitAuConteneur}.
         \end{itemize}
 \end{itemize}
 
-\paragraph{Signal}
+\subsection{\texttt{MainWindow} et hiérarchie dans la \texttt{QTreeView}}
+
+\paragraph{Rôle}
+Fenêtre principale de l'application. Elle contient :
 \begin{itemize}
-  \item \texttt{void entrepotChanged();}~: émis lorsqu'on modifie la structure
-        (ajout/suppression de conteneurs, produits, palettes).
+  \item un \texttt{QComboBox} \texttt{comboBoxTypeModel} pour basculer
+        entre les groupes \og Conteneur \fg{}, \og Palette \fg{} et
+        \og Produit \fg{} ;
+  \item un \texttt{QGroupBox} avec une \texttt{QTreeView} pour afficher
+        l'arborescence \texttt{Conteneur} $\rightarrow$ \texttt{Produits}.
 \end{itemize}
 
-\paragraph{Lien UML}
+\paragraph{Modèle de la TreeView}
+La \texttt{QTreeView} est alimentée par un \texttt{QStandardItemModel}
+(\texttt{m\_treeModel}). La méthode \texttt{rebuildTreeView()} :
+
 \begin{itemize}
-  \item Les attributs correspondent au bloc \emph{Entrepot} du diagramme.
-  \item Les associations 0..* vers \texttt{Conteneur}, \texttt{Product} et
-        \texttt{Palette} sont implémentées via les listes
-        \texttt{m\_conteneurs}, \texttt{m\_palettes} et la méthode
-        \texttt{tousLesProduits()}.
-  \item La relation avec \texttt{ReglesCompatibilite} est implémentée par
-        un membre interne \texttt{m\_regles}.
+  \item efface le modèle,
+  \item parcourt la liste des conteneurs fournie par
+        \texttt{ConteneurControleur::conteneurs()},
+  \item pour chaque conteneur crée un item racine
+        \og Conteneur \texttt{<Id>} \fg{},
+  \item pour chaque produit du conteneur, crée un enfant
+        \og Produit \texttt{<IdProduit>} \fg{}.
 \end{itemize}
 
+La méthode est appelée après chaque création de conteneur ou de produit,
+afin de garder la vue toujours synchronisée avec le modèle.
+
+\section*{Conclusion}
+
+Le projet \emph{Warehouse Manager} implémente un modèle d'entrepôt
+structuré, basé sur des classes métiers claires (\texttt{Product},
+\texttt{Conteneur}, \texttt{Palette}, etc.), enrichi par des
+contrôleurs qui font le lien avec l'interface Qt.  
+
+Les dialogs d'ajout permettent de créer des objets cohérents
+(en utilisant les énumérations du modèle) et de construire
+progressivement une hiérarchie conteneurs / produits visualisable
+dans la \texttt{QTreeView} de la fenêtre principale.
+
+Ce document pourra être complété par la suite avec :
+\begin{itemize}
+  \item la description détaillée des algorithmes FIFO/FEFO de
+        génération de palettes,
+  \item la gestion et l'édition des règles de compatibilité
+        (\texttt{ReglesCompatibilite}),
+  \item des captures d'écran de l'interface finale.
+\end{itemize}
 
 \end{document}

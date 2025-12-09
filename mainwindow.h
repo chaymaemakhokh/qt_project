@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "./controlleur/produitcontroleur.h"
+#include "./controlleur/conteneurcontroleur.h"
+
+class QStandardItemModel;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,10 +22,22 @@ public:
     ~MainWindow();
 
 private slots:
-    // Slot appelé automatiquement quand le texte du combo change
     void on_comboBoxTypeModel_currentTextChanged(const QString &text);
 
+    void on_actionAjoute_Produit_triggered();
+    void on_actionAjouter_Conteneur_triggered();
+    void on_lineEditId_textChanged(const QString &text);
+
 private:
+    void rebuildTreeView();
+    void updateDetailsFromFilter();
     Ui::MainWindow *ui;
+
+    ProduitControleur   *m_produitCtrl;
+    ConteneurControleur *m_conteneurCtrl;
+
+    QStandardItemModel  *m_treeModel;
+
 };
+
 #endif // MAINWINDOW_H

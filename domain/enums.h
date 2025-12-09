@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QMetaType>
 
 enum class TypeProduit {
     Alimentaire,
@@ -20,6 +21,11 @@ enum class EtatProduit {
     Stocke,
     Expedie
 };
+
+// ⚠️ Pas de ; à la fin
+Q_DECLARE_METATYPE(TypeProduit)
+Q_DECLARE_METATYPE(TypeConteneur)
+Q_DECLARE_METATYPE(EtatProduit)
 
 // Helpers simples (implémentés dans enums.cpp)
 QString toString(TypeProduit t);
