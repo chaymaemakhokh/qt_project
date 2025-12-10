@@ -70,3 +70,25 @@ void Conteneur::retirerProduit(Product *p) {
         emit conteneurChanged();
     }
 }
+
+bool Conteneur::retirerProduitParId(const QString &idProduit)
+{
+    bool removed = false;
+
+    auto it = m_produits.begin();
+    while (it != m_produits.end()) {
+        Product *p = *it;
+        if (p && p->idProduit() == idProduit) {
+            it = m_produits.erase(it);
+            removed = true;
+            emit produitRetire(p);
+        } else {
+            ++it;
+        }
+    }
+
+    if (removed)
+        emit conteneurChanged();
+
+    return removed;
+}

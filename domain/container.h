@@ -37,6 +37,8 @@ public:
     bool ajouterProduit(Product *p);
     void retirerProduit(Product *p);
 
+    bool retirerProduitParId(const QString &idProduit);
+
 signals:
     void conteneurChanged();
     void produitAjoute(Product *p);

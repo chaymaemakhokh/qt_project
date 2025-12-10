@@ -11,8 +11,10 @@ CONFIG += c++17
 
 SOURCES += \
     ajouterconteneur.cpp \
+    ajouterpalette.cpp \
     ajouterproduit.cpp \
     controlleur/conteneurcontroleur.cpp \
+    controlleur/palettecontroleur.cpp \
     controlleur/produitcontroleur.cpp \
     domain/compatibility.cpp \
     domain/container.cpp \
@@ -30,8 +32,10 @@ SOURCES += \
 
 HEADERS += \
     ajouterconteneur.h \
+    ajouterpalette.h \
     ajouterproduit.h \
     controlleur/conteneurcontroleur.h \
+    controlleur/palettecontroleur.h \
     controlleur/produitcontroleur.h \
     domain/compatibility.h \
     domain/container.h \
@@ -48,6 +52,7 @@ HEADERS += \
 
 FORMS += \
     ajouterconteneur.ui \
+    ajouterpalette.ui \
     ajouterproduit.ui \
     mainwindow.ui
 

@@ -9,6 +9,17 @@
 #include "./domain/enums.h"
 #include "./domain/product.h"
 
+
+struct FiltreConteneur
+{
+    QString idPartiel;          // vide = pas de filtre sur l'id
+    bool filtrerParType = false;
+    TypeConteneur type;
+
+    bool filtrerParCapacite = false;
+    double capaciteMax = 0.0;
+};
+
 class ConteneurControleur : public QObject
 {
     Q_OBJECT
@@ -26,8 +37,18 @@ public:
     bool ajouterProduitAuConteneur(const QString &idConteneur,
                                    const std::shared_ptr<Product> &produit);
 
+    QVector<std::shared_ptr<Conteneur>>
+    rechercherParIdPartiel(const QString &idPartiel) const;
+
+    QVector<std::shared_ptr<Conteneur>>
+    rechercherParFiltre(const FiltreConteneur &filtre) const;
+
+    bool supprimerConteneurParId(const QString &id);
+
+    bool supprimerProduitDansTousLesConteneursParId(const QString &idProduit);
+
+
     void debugPrintConteneurs() const;
-     Conteneur* getConteneurParId(const QString &id) const;
 
 private:
     Conteneur* trouverConteneurParId(const QString &id) const;

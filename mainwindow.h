@@ -2,10 +2,17 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QVector>
+#include <memory>
+
 #include "./controlleur/produitcontroleur.h"
 #include "./controlleur/conteneurcontroleur.h"
+#include "./controlleur/palettecontroleur.h"
 
 class QStandardItemModel;
+class Conteneur;
+class Product;
+class Palette;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,18 +33,34 @@ private slots:
 
     void on_actionAjoute_Produit_triggered();
     void on_actionAjouter_Conteneur_triggered();
-    void on_lineEditId_textChanged(const QString &text);
+    void on_actionAjouter_Palette_triggered();
+
+    void on_Rechercher_clicked();
 
 private:
     void rebuildTreeView();
-    void updateDetailsFromFilter();
+
+    void afficherResultatsTous(
+        const QVector<std::shared_ptr<Conteneur>> &conts,
+        const QVector<std::shared_ptr<Product>>   &prods,
+        const QVector<std::shared_ptr<Palette>>   &pals);
+
+    void afficherListeConteneurs(
+        const QVector<std::shared_ptr<Conteneur>> &conts);
+
+    void afficherListeProduits(
+        const QVector<std::shared_ptr<Product>> &prods);
+
+    void afficherListePalettes(
+        const QVector<std::shared_ptr<Palette>> &pals);
+
     Ui::MainWindow *ui;
 
     ProduitControleur   *m_produitCtrl;
     ConteneurControleur *m_conteneurCtrl;
+    PaletteControleur   *m_paletteCtrl;
 
     QStandardItemModel  *m_treeModel;
-
 };
 
 #endif // MAINWINDOW_H

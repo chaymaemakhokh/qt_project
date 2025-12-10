@@ -60,6 +60,95 @@ std::shared_ptr<Product> ProduitControleur::ajouterProduitAvecCycleDeVie(
     return p;
 }
 
+QVector<std::shared_ptr<Product>>
+ProduitControleur::rechercherParIdPartiel(const QString &idPartiel) const
+{
+    QVector<std::shared_ptr<Product>> res;
+    const QString pattern = idPartiel.trimmed();
+
+    for (const auto &p : m_produits) {
+        if (!p) continue;
+        if (pattern.isEmpty() ||
+            p->idProduit().contains(pattern, Qt::CaseInsensitive)) {
+            res.push_back(p);
+        }
+    }
+    return res;
+}
+
+QVector<std::shared_ptr<Product>>
+ProduitControleur::rechercherParFiltre(const FiltreProduit &f) const
+{
+    QVector<std::shared_ptr<Product>> res;
+    const QString idPattern  = f.idPartiel.trimmed();
+    const QString nomPattern = f.nomPartiel.trimmed();
+
+    for (const auto &p : m_produits) {
+        if (!p) continue;
+
+        bool ok = true;
+
+        // Id
+        if (!idPattern.isEmpty() &&
+            !p->idProduit().contains(idPattern, Qt::CaseInsensitive)) {
+            ok = false;
+        }
+
+        // Type
+        if (ok && f.filtrerParType && p->type() != f.type) {
+            ok = false;
+        }
+
+        // Nom
+        if (ok && !nomPattern.isEmpty() &&
+            !p->nom().contains(nomPattern, Qt::CaseInsensitive)) {
+            ok = false;
+        }
+
+        // Date d'entrée
+        if (ok && f.filtrerParDateEntree &&
+            p->dateEntreeStock() != f.dateEntree) {
+            ok = false;
+        }
+
+        // Capacité max
+        if (ok && f.filtrerParCapacite &&
+            !qFuzzyCompare(p->capaciteMax() + 1.0, f.capaciteMax + 1.0)) {
+            ok = false;
+        }
+
+        // Poids
+        if (ok && f.filtrerParPoids &&
+            !qFuzzyCompare(p->poids() + 1.0, f.poids + 1.0)) {
+            ok = false;
+        }
+
+        // Volume
+        if (ok && f.filtrerParVolume &&
+            !qFuzzyCompare(p->volume() + 1.0, f.volume + 1.0)) {
+            ok = false;
+        }
+
+        if (ok)
+            res.push_back(p);
+    }
+
+    return res;
+}
+
+bool ProduitControleur::supprimerProduitParId(const QString &id)
+{
+    for (int i = 0; i < m_produits.size(); ++i) {
+        const auto &p = m_produits[i];
+        if (p && p->idProduit() == id) {
+            m_produits.removeAt(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void ProduitControleur::debugPrintProduits() const
 {
     qDebug().noquote() << "===== LISTE DES PRODUITS =====";
@@ -77,13 +166,4 @@ void ProduitControleur::debugPrintProduits() const
         qDebug().noquote() << ligne;
     }
     qDebug().noquote() << "===============================";
-}
-Product* ProduitControleur::getProduitParId(const QString &id) const
-{
-    for (const auto &p : m_produits)
-    {
-        if (p && p->idProduit() == id)
-            return p.get();
-    }
-    return nullptr;
 }
