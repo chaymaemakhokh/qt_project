@@ -32,6 +32,13 @@ MainWindow::MainWindow(QWidget *parent)
     , m_treeModel(new QStandardItemModel(this))
 {
     ui->setupUi(this);
+    // Quand on tape un Id, on met à jour les détails
+    connect(ui->lineEdit, &QLineEdit::textChanged,
+            this, &MainWindow::on_lineEditId_textChanged);
+
+
+    ui->treeView->setModel(m_treeModel);
+    ui->treeView->setHeaderHidden(false);
 
     ui->treeView->setModel(m_treeModel);
     ui->treeView->setHeaderHidden(false);
@@ -63,6 +70,14 @@ void MainWindow::on_comboBoxTypeModel_currentTextChanged(const QString &text)
     ui->groupBox_Conteneur->setVisible(showConteneur);
     ui->groupBox_Palette->setVisible(showPalette);
     ui->groupBox_Produit->setVisible(showProduit);
+
+    // En mode "Tous", on nettoie l’ID et les champs
+    if (text == "Tous") {
+        ui->lineEdit->clear();
+    }
+
+    // Met à jour les champs de détail en fonction du nouveau mode
+    updateDetailsFromFilter();
 }
 
 void MainWindow::rebuildTreeView()
