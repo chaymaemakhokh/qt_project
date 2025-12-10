@@ -9,6 +9,27 @@
 #include "./domain/produit_cycledevie.h"
 #include "./domain/enums.h"
 
+struct FiltreProduit
+{
+    QString idPartiel;              // vide = pas de filtre
+    bool   filtrerParType = false;
+    TypeProduit type;
+
+    QString nomPartiel;             // vide = pas de filtre
+
+    bool   filtrerParDateEntree = false;
+    QDate  dateEntree;
+
+    bool   filtrerParCapacite = false;
+    double capaciteMax = 0.0;
+
+    bool   filtrerParPoids = false;
+    double poids = 0.0;
+
+    bool   filtrerParVolume = false;
+    double volume = 0.0;
+};
+
 class ProduitControleur : public QObject
 {
     Q_OBJECT
@@ -36,6 +57,14 @@ public:
         const QDate &dateEntree,
         const QDate &datePeremption,
         EtatProduit etat);
+
+    QVector<std::shared_ptr<Product>>
+    rechercherParIdPartiel(const QString &idPartiel) const;
+
+    QVector<std::shared_ptr<Product>>
+    rechercherParFiltre(const FiltreProduit &filtre) const;
+
+    bool supprimerProduitParId(const QString &id);
 
     void debugPrintProduits() const;
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>955</width>
-    <height>843</height>
+    <width>745</width>
+    <height>626</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="Titre">
     <property name="geometry">
      <rect>
       <x>220</x>
@@ -85,7 +85,7 @@
      </property>
     </item>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="IdTous">
     <property name="geometry">
      <rect>
       <x>190</x>
@@ -98,7 +98,7 @@
      <string>Id : </string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="IdTous_2">
     <property name="geometry">
      <rect>
       <x>350</x>
@@ -120,7 +120,7 @@
     <property name="title">
      <string>Caracteristics Conteneur</string>
     </property>
-    <widget class="QLabel" name="label_3">
+    <widget class="QLabel" name="TypeConteneur">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -133,7 +133,7 @@
       <string>Type : </string>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBox_2">
+    <widget class="QComboBox" name="TypeConteneur_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -144,7 +144,7 @@
      </property>
      <item>
       <property name="text">
-       <string>TOUS</string>
+       <string>AUTRE</string>
       </property>
      </item>
      <item>
@@ -162,13 +162,8 @@
        <string>FRAGILE</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string/>
-      </property>
-     </item>
     </widget>
-    <widget class="QLabel" name="label_4">
+    <widget class="QLabel" name="CapaciteMaxConteneur">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -181,17 +176,7 @@
       <string>CapaciteMax : </string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_2">
-     <property name="geometry">
-      <rect>
-       <x>190</x>
-       <y>110</y>
-       <width>271</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_18">
+    <widget class="QLineEdit" name="IdConteneur_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -201,7 +186,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_32">
+    <widget class="QLabel" name="IdConteneur">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -212,6 +197,16 @@
      </property>
      <property name="text">
       <string>Id : </string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="CapaciteMaxConteneur_2">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>110</y>
+       <width>271</width>
+       <height>26</height>
+      </rect>
      </property>
     </widget>
    </widget>
@@ -227,7 +222,7 @@
     <property name="title">
      <string>Caracteristics Palette</string>
     </property>
-    <widget class="QLabel" name="label_9">
+    <widget class="QLabel" name="IdPalette">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -240,7 +235,7 @@
       <string>Id : </string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_10">
+    <widget class="QLabel" name="DestinationPalette">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -253,7 +248,7 @@
       <string>Destination : </string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_5">
+    <widget class="QLineEdit" name="DestinationPalette_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -263,7 +258,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_11">
+    <widget class="QLabel" name="DateEnvoiPrevuePalette">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -276,7 +271,7 @@
       <string>DateEnvoiPrevue : </string>
      </property>
     </widget>
-    <widget class="QDateEdit" name="dateEdit">
+    <widget class="QDateEdit" name="DateEnvoiPrevuePalette_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -286,7 +281,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_6">
+    <widget class="QLineEdit" name="CapaciteMaxPalette_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -296,7 +291,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_12">
+    <widget class="QLabel" name="CapaciteMaxPalette">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -309,7 +304,7 @@
       <string>CapaciteMax : </string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_19">
+    <widget class="QLineEdit" name="IdPalette_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -332,7 +327,7 @@
     <property name="title">
      <string>Caracteristics Produit</string>
     </property>
-    <widget class="QLabel" name="label_25">
+    <widget class="QLabel" name="TypeProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -345,7 +340,7 @@
       <string>Type : </string>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBox_9">
+    <widget class="QComboBox" name="TypeProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -380,7 +375,7 @@
       </property>
      </item>
     </widget>
-    <widget class="QLabel" name="label_26">
+    <widget class="QLabel" name="NomProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -393,7 +388,7 @@
       <string>Nom : </string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_13">
+    <widget class="QLineEdit" name="NomProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -403,7 +398,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_27">
+    <widget class="QLabel" name="DateEntreeStockProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -416,7 +411,7 @@
       <string>DateEntreeStock : </string>
      </property>
     </widget>
-    <widget class="QDateEdit" name="dateEdit_5">
+    <widget class="QDateEdit" name="DateEntreeStockProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -426,7 +421,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_14">
+    <widget class="QLineEdit" name="CapaciteMaxProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -436,7 +431,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_28">
+    <widget class="QLabel" name="CapaciteMaxProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -449,7 +444,7 @@
       <string>CapaciteMax : </string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_15">
+    <widget class="QLineEdit" name="PoidsProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -459,7 +454,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_29">
+    <widget class="QLabel" name="PoidsProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -472,7 +467,7 @@
       <string>Poids : </string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_30">
+    <widget class="QLabel" name="VolumeProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -485,7 +480,7 @@
       <string>Volume : </string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_16">
+    <widget class="QLineEdit" name="VolumeProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -495,7 +490,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_17">
+    <widget class="QLineEdit" name="IdProduit_2">
      <property name="geometry">
       <rect>
        <x>190</x>
@@ -505,7 +500,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_31">
+    <widget class="QLabel" name="IdProduit">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -519,14 +514,27 @@
      </property>
     </widget>
    </widget>
+   <widget class="QPushButton" name="Rechercher">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>510</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Rechercher</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>955</width>
-     <height>22</height>
+     <width>745</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuCRUD">
@@ -535,6 +543,7 @@
     </property>
     <addaction name="actionAjoute_Produit"/>
     <addaction name="actionAjouter_Conteneur"/>
+    <addaction name="actionAjouter_Palette"/>
    </widget>
    <addaction name="menuCRUD"/>
   </widget>
@@ -547,6 +556,11 @@
   <action name="actionAjouter_Conteneur">
    <property name="text">
     <string>Ajouter Conteneur</string>
+   </property>
+  </action>
+  <action name="actionAjouter_Palette">
+   <property name="text">
+    <string>Ajouter Palette</string>
    </property>
   </action>
  </widget>

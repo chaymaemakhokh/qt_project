@@ -39,6 +39,81 @@ bool ConteneurControleur::ajouterProduitAuConteneur(
     return c->ajouterProduit(produit.get());
 }
 
+QVector<std::shared_ptr<Conteneur>>
+ConteneurControleur::rechercherParIdPartiel(const QString &idPartiel) const
+{
+    QVector<std::shared_ptr<Conteneur>> res;
+    const QString pattern = idPartiel.trimmed();
+
+    for (const auto &c : m_conteneurs) {
+        if (!c) continue;
+        if (pattern.isEmpty() ||
+            c->idConteneur().contains(pattern, Qt::CaseInsensitive)) {
+            res.push_back(c);
+        }
+    }
+    return res;
+}
+
+QVector<std::shared_ptr<Conteneur>>
+ConteneurControleur::rechercherParFiltre(const FiltreConteneur &f) const
+{
+    QVector<std::shared_ptr<Conteneur>> res;
+    const QString pattern = f.idPartiel.trimmed();
+
+    for (const auto &c : m_conteneurs) {
+        if (!c) continue;
+
+        bool ok = true;
+
+        // Id partiel
+        if (!pattern.isEmpty() &&
+            !c->idConteneur().contains(pattern, Qt::CaseInsensitive)) {
+            ok = false;
+        }
+
+        // Type
+        if (ok && f.filtrerParType && c->type() != f.type) {
+            ok = false;
+        }
+
+        // Capacité max (égalité stricte pour l'instant)
+        if (ok && f.filtrerParCapacite &&
+            !qFuzzyCompare(c->capaciteMax() + 1.0, f.capaciteMax + 1.0)) {
+            ok = false;
+        }
+
+        if (ok)
+            res.push_back(c);
+    }
+
+    return res;
+}
+
+bool ConteneurControleur::supprimerConteneurParId(const QString &id)
+{
+    for (int i = 0; i < m_conteneurs.size(); ++i) {
+        const auto &c = m_conteneurs[i];
+        if (c && c->idConteneur() == id) {
+            m_conteneurs.removeAt(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ConteneurControleur::supprimerProduitDansTousLesConteneursParId(
+    const QString &idProduit)
+{
+    bool removed = false;
+    for (const auto &c : m_conteneurs) {
+        if (!c) continue;
+        if (c->retirerProduitParId(idProduit))
+            removed = true;
+    }
+    return removed;
+}
+
 void ConteneurControleur::debugPrintConteneurs() const
 {
     qDebug().noquote() << "===== LISTE DES CONTENEURS =====";
