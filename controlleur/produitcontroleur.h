@@ -66,6 +66,10 @@ public:
 
     bool supprimerProduitParId(const QString &id);
 
+    const QVector<std::shared_ptr<Product>>& produits() const { return m_produits; }
+
+     void vider();
+
     void debugPrintProduits() const;
 
 private:

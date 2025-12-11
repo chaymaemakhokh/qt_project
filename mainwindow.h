@@ -8,6 +8,7 @@
 #include "./controlleur/produitcontroleur.h"
 #include "./controlleur/conteneurcontroleur.h"
 #include "./controlleur/palettecontroleur.h"
+#include "./domain/compatibility.h"
 
 class QStandardItemModel;
 class Conteneur;
@@ -36,6 +37,11 @@ private slots:
     void on_actionAjouter_Palette_triggered();
 
     void on_Rechercher_clicked();
+    void on_actionExporter_JSON_triggered();
+    void on_actionImporter_JSON_triggered();
+
+    void on_actionGenerer_Palettes_Automatiquement_triggered();
+
 
 private:
     void rebuildTreeView();
@@ -61,6 +67,8 @@ private:
     PaletteControleur   *m_paletteCtrl;
 
     QStandardItemModel  *m_treeModel;
+
+    ReglesCompatibilite m_reglesCompat;
 };
 
 #endif // MAINWINDOW_H

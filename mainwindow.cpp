@@ -5,6 +5,13 @@
 #include "ajouterconteneur.h"
 #include "ajouterpalette.h"
 
+#include <QFileDialog>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonParseError>
+
 #include "./controlleur/produitcontroleur.h"
 #include "./controlleur/conteneurcontroleur.h"
 #include "./controlleur/palettecontroleur.h"
@@ -32,10 +39,28 @@ MainWindow::MainWindow(QWidget *parent)
     , m_treeModel(new QStandardItemModel(this))
 {
     ui->setupUi(this);
-    // Quand on tape un Id, on met à jour les détails
-    connect(ui->lineEdit, &QLineEdit::textChanged,
-            this, &MainWindow::on_lineEditId_textChanged);
 
+    // ====== RÈGLES DE COMPATIBILITÉ RÉALISTES ======
+    // Alimentaire ⛔ Medicament
+    m_reglesCompat.definirCompatibilite(
+        TypeProduit::Alimentaire,
+        TypeProduit::Medicament,
+        false);
+
+    // Alimentaire ⛔ Electronique
+    m_reglesCompat.definirCompatibilite(
+        TypeProduit::Alimentaire,
+        TypeProduit::Electronique,
+        false);
+
+    // Medicament ⛔ Electronique (si tu veux aussi les séparer)
+    m_reglesCompat.definirCompatibilite(
+        TypeProduit::Medicament,
+        TypeProduit::Electronique,
+        false);
+
+    // Tout ce qui est Autre reste compatible avec tout par défaut
+    // (ReglesCompatibilite::areCompatible() renvoie true si aucune règle trouvée)
 
     ui->treeView->setModel(m_treeModel);
     ui->treeView->setHeaderHidden(false);
@@ -71,13 +96,6 @@ void MainWindow::on_comboBoxTypeModel_currentTextChanged(const QString &text)
     ui->groupBox_Palette->setVisible(showPalette);
     ui->groupBox_Produit->setVisible(showProduit);
 
-    // En mode "Tous", on nettoie l’ID et les champs
-    if (text == "Tous") {
-        ui->lineEdit->clear();
-    }
-
-    // Met à jour les champs de détail en fonction du nouveau mode
-    updateDetailsFromFilter();
 }
 
 void MainWindow::rebuildTreeView()
@@ -513,7 +531,6 @@ void MainWindow::afficherListeProduits(
     dlg.exec();
 }
 
-
 void MainWindow::afficherListePalettes(
     const QVector<std::shared_ptr<Palette>> &pals)
 {
@@ -527,13 +544,15 @@ void MainWindow::afficherListePalettes(
     dlg.setWindowTitle(tr("Palettes trouvées"));
     QVBoxLayout *layout = new QVBoxLayout(&dlg);
 
-    QTableWidget *table = new QTableWidget(pals.size(), 6, &dlg);
+    // 7 colonnes : Id, Destination, Date, Capacité, Contenu, Editer, Supprimer
+    QTableWidget *table = new QTableWidget(pals.size(), 7, &dlg);
     table->setHorizontalHeaderLabels(
         QStringList() << "Id" << "Destination" << "Date envoi" << "CapaciteMax"
-                      << "Editer" << "Supprimer");
+                      << "Contenu" << "Editer" << "Supprimer");
     table->horizontalHeader()->setStretchLastSection(true);
 
-    for (int i = 0; i < pals.size(); ++i) {
+    for (int i = 0; i < pals.size(); ++i)
+    {
         const auto &p = pals[i];
         if (!p) continue;
 
@@ -546,16 +565,22 @@ void MainWindow::afficherListePalettes(
         table->setItem(i, 3, new QTableWidgetItem(
                                  QString::number(p->capaciteMax())));
 
+        // 👁 Bouton CONTENU
+        QPushButton *btnContenu = new QPushButton("👁", table);
+        btnContenu->setFlat(true);
+        table->setCellWidget(i, 4, btnContenu);
+
+        // ✏ Bouton EDITER (à implémenter plus tard)
         QPushButton *btnEdit = new QPushButton("✏", table);
-        QPushButton *btnDel  = new QPushButton("🗑", table);
         btnEdit->setFlat(true);
+        table->setCellWidget(i, 5, btnEdit);
+
+        // 🗑 Bouton SUPPRIMER
+        QPushButton *btnDel = new QPushButton("🗑", table);
         btnDel->setFlat(true);
+        table->setCellWidget(i, 6, btnDel);
 
-        table->setCellWidget(i, 4, btnEdit);
-        table->setCellWidget(i, 5, btnDel);
-
-        // TODO : btnEdit plus tard
-
+        // --- Action Bouton SUPPRIMER ---
         connect(btnDel, &QPushButton::clicked, this,
                 [this, id, table]() {
                     if (!m_paletteCtrl) return;
@@ -563,6 +588,7 @@ void MainWindow::afficherListePalettes(
 
                     rebuildTreeView();
 
+                    // Supprimer la ligne du tableau
                     for (int r = 0; r < table->rowCount(); ++r) {
                         QTableWidgetItem *item = table->item(r, 0);
                         if (item && item->text() == id) {
@@ -570,6 +596,51 @@ void MainWindow::afficherListePalettes(
                             break;
                         }
                     }
+                });
+
+        // --- Action Bouton CONTENU ---
+        connect(btnContenu, &QPushButton::clicked, this,
+                [p, this]() {
+
+                    QDialog d(this);
+                    d.setWindowTitle("Contenu de la palette " + p->idPalette());
+                    QVBoxLayout *lay = new QVBoxLayout(&d);
+
+                    const auto &elements = p->elements();
+
+                    QTableWidget *tab = new QTableWidget(elements.size(), 3, &d);
+                    tab->setHorizontalHeaderLabels(QStringList()
+                                                   << "Quantité"
+                                                   << "Produits"
+                                                   << "Poids total (kg)");
+
+                    for (int row = 0; row < elements.size(); ++row)
+                    {
+                        const ElementsPalette &el = elements[row];
+
+                        tab->setItem(row, 0,
+                                     new QTableWidgetItem(QString::number(el.quantite())));
+
+                        // Concaténer les noms des produits
+                        QString noms;
+                        for (Product *prod : el.produits()) {
+                            if (prod)
+                                noms += prod->nom() + " (" + prod->idProduit() + ")\n";
+                        }
+
+                        tab->setItem(row, 1, new QTableWidgetItem(noms.trimmed()));
+                        tab->setItem(row, 2,
+                                     new QTableWidgetItem(QString::number(el.poidsTotal())));
+                    }
+
+                    lay->addWidget(tab);
+
+                    QDialogButtonBox *btn =
+                        new QDialogButtonBox(QDialogButtonBox::Close, &d);
+                    lay->addWidget(btn);
+                    connect(btn, &QDialogButtonBox::rejected, &d, &QDialog::reject);
+
+                    d.exec();
                 });
     }
 
@@ -584,6 +655,283 @@ void MainWindow::afficherListePalettes(
 }
 
 
+void MainWindow::on_actionExporter_JSON_triggered()
+{
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        tr("Exporter en JSON"),
+        QString(),
+        tr("Fichiers JSON (*.json)")
+        );
+    if (fileName.isEmpty())
+        return;
+
+    QJsonObject root;
+
+    // ---------- 1) Produits ----------
+    QJsonArray produitsArray;
+    if (m_produitCtrl) {
+        const auto &prods = m_produitCtrl->produits();
+        for (const auto &p : prods) {
+            if (!p) continue;
+            QJsonObject obj;
+            obj["id"]           = p->idProduit();
+            obj["nom"]          = p->nom();
+            obj["type"]         = toString(p->type());
+            obj["capaciteMax"]  = p->capaciteMax();
+            obj["etat"]         = toString(p->etat());
+            obj["poids"]        = p->poids();
+            obj["volume"]       = p->volume();
+            obj["dateEntree"]   = p->dateEntreeStock().toString(Qt::ISODate);
+            obj["datePeremption"] = p->datePeremption().toString(Qt::ISODate);
+
+            // Pour savoir de quelle classe concrète il vient
+            if (qobject_cast<ProduitAvecCycleDeVie*>(p.get()))
+                obj["classe"] = "CycleDeVie";
+            else
+                obj["classe"] = "Caracteristiques";
+
+            // cas particulier : conditions conservation (seulement pour ProduitAvecCaracteristiques)
+            if (auto *pc = qobject_cast<ProduitAvecCaracteristiques*>(p.get())) {
+                obj["conditionsConservation"] = pc->conditionsConservation();
+            }
+
+            produitsArray.append(obj);
+        }
+    }
+    root["produits"] = produitsArray;
+
+    // ---------- 2) Conteneurs ----------
+    QJsonArray conteneursArray;
+    if (m_conteneurCtrl) {
+        const auto &conts = m_conteneurCtrl->conteneurs();
+        for (const auto &c : conts) {
+            if (!c) continue;
+            QJsonObject obj;
+            obj["id"]          = c->idConteneur();
+            obj["type"]        = toString(c->type());
+            obj["capaciteMax"] = c->capaciteMax();
+
+            // liste des id produits contenus
+            QJsonArray prodsIds;
+            for (Product *p : c->produits()) {
+                if (p)
+                    prodsIds.append(p->idProduit());
+            }
+            obj["produits"] = prodsIds;
+
+            conteneursArray.append(obj);
+        }
+    }
+    root["conteneurs"] = conteneursArray;
+
+    // ---------- 3) Palettes ----------
+    QJsonArray palettesArray;
+    if (m_paletteCtrl) {
+        const auto &pals = m_paletteCtrl->palettes();
+        for (const auto &p : pals) {
+            if (!p) continue;
+            QJsonObject obj;
+            obj["id"]             = p->idPalette();
+            obj["destination"]    = p->destination();
+            obj["dateEnvoiPrevue"]= p->dateEnvoiPrevue().toString(Qt::ISODate);
+            obj["capaciteMax"]    = p->capaciteMax();
+
+            // éléments palette → quantite + liste d'id de produits
+            QJsonArray elementsArray;
+            for (const ElementsPalette &el : p->elements()) {
+                QJsonObject elObj;
+                elObj["quantite"] = el.quantite();
+                QJsonArray ids;
+                for (Product *prod : el.produits()) {
+                    if (prod)
+                        ids.append(prod->idProduit());
+                }
+                elObj["produits"] = ids;
+                elementsArray.append(elObj);
+            }
+            obj["elements"] = elementsArray;
+
+            palettesArray.append(obj);
+        }
+    }
+    root["palettes"] = palettesArray;
+
+    // ---------- Écriture sur disque ----------
+    QJsonDocument doc(root);
+    QFile f(fileName);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QMessageBox::warning(this, tr("Erreur"),
+                             tr("Impossible d'ouvrir le fichier en écriture."));
+        return;
+    }
+    f.write(doc.toJson(QJsonDocument::Indented));
+    f.close();
+
+    QMessageBox::information(this, tr("Export"),
+                             tr("Export JSON terminé avec succès."));
+}
 
 
+void MainWindow::on_actionImporter_JSON_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        tr("Importer depuis JSON"),
+        QString(),
+        tr("Fichiers JSON (*.json)")
+        );
+    if (fileName.isEmpty())
+        return;
+
+    QFile f(fileName);
+    if (!f.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("Erreur"),
+                             tr("Impossible d'ouvrir le fichier en lecture."));
+        return;
+    }
+    QByteArray data = f.readAll();
+    f.close();
+
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &err);
+    if (err.error != QJsonParseError::NoError || !doc.isObject()) {
+        QMessageBox::warning(this, tr("Erreur JSON"),
+                             tr("Fichier JSON invalide : %1").arg(err.errorString()));
+        return;
+    }
+
+    QJsonObject root = doc.object();
+
+    // ---------- on vide l'existant ----------
+    if (m_conteneurCtrl) m_conteneurCtrl->vider();
+    if (m_produitCtrl)   m_produitCtrl->vider();
+    if (m_paletteCtrl)   m_paletteCtrl->vider();
+
+    // ---------- 1) Recréer tous les PRODUITS ----------
+    QHash<QString, std::shared_ptr<Product>> idToProduct;
+    if (m_produitCtrl && root.contains("produits") && root["produits"].isArray()) {
+        QJsonArray arr = root["produits"].toArray();
+        for (const QJsonValue &val : arr) {
+            if (!val.isObject()) continue;
+            QJsonObject o = val.toObject();
+
+            QString id   = o["id"].toString();
+            QString nom  = o["nom"].toString();
+            TypeProduit type = typeProduitFromString(o["type"].toString());
+            double capaciteMax = o["capaciteMax"].toDouble();
+            EtatProduit etat   = etatProduitFromString(o["etat"].toString());
+            double poids       = o["poids"].toDouble();
+            double volume      = o["volume"].toDouble();
+            QDate dateEntree   = QDate::fromString(o["dateEntree"].toString(), Qt::ISODate);
+
+            QString classe = o["classe"].toString();
+            std::shared_ptr<Product> p;
+
+            if (classe == "CycleDeVie") {
+                QDate datePeremp = QDate::fromString(
+                    o["datePeremption"].toString(), Qt::ISODate);
+                p = m_produitCtrl->ajouterProduitAvecCycleDeVie(
+                    id, nom, type, capaciteMax,
+                    poids, volume,
+                    dateEntree, datePeremp,
+                    etat);
+            } else {
+                QString cond = o["conditionsConservation"].toString();
+                p = m_produitCtrl->ajouterProduitAvecCaracteristiques(
+                    id, nom, type, capaciteMax,
+                    poids, volume,
+                    cond,
+                    dateEntree,
+                    etat);
+            }
+
+            if (!id.isEmpty())
+                idToProduct.insert(id, p);
+        }
+    }
+
+    // ---------- 2) Recréer les CONTENEURS + rattacher les produits ----------
+    if (m_conteneurCtrl && root.contains("conteneurs") && root["conteneurs"].isArray()) {
+        QJsonArray arr = root["conteneurs"].toArray();
+        for (const QJsonValue &val : arr) {
+            if (!val.isObject()) continue;
+            QJsonObject o = val.toObject();
+
+            QString id = o["id"].toString();
+            TypeConteneur type = typeConteneurFromString(o["type"].toString());
+            double capaciteMax = o["capaciteMax"].toDouble();
+            m_conteneurCtrl->ajouterConteneur(id, type, capaciteMax);
+
+            Conteneur *c = m_conteneurCtrl->trouverConteneurParId(id);
+            if (!c) continue;
+
+            QJsonArray prodIds = o["produits"].toArray();
+            for (const QJsonValue &idVal : prodIds) {
+                QString pid = idVal.toString();
+                if (idToProduct.contains(pid)) {
+                    c->ajouterProduit(idToProduct[pid].get());
+                }
+            }
+        }
+    }
+
+    // ---------- 3) Recréer les PALETTES + leurs éléments ----------
+    if (m_paletteCtrl && root.contains("palettes") && root["palettes"].isArray()) {
+        QJsonArray arr = root["palettes"].toArray();
+        for (const QJsonValue &val : arr) {
+            if (!val.isObject()) continue;
+            QJsonObject o = val.toObject();
+
+            QString id          = o["id"].toString();
+            QString dest        = o["destination"].toString();
+            QDate   dateEnvoi   = QDate::fromString(o["dateEnvoiPrevue"].toString(), Qt::ISODate);
+            double  capaciteMax = o["capaciteMax"].toDouble();
+
+            m_paletteCtrl->ajouterPalette(id, dest, dateEnvoi, capaciteMax);
+            Palette *pal = m_paletteCtrl->trouverPaletteParId(id);
+            if (!pal) continue;
+
+            // éléments
+            if (o.contains("elements") && o["elements"].isArray()) {
+                QJsonArray elems = o["elements"].toArray();
+                for (const QJsonValue &ev : elems) {
+                    if (!ev.isObject()) continue;
+                    QJsonObject eo = ev.toObject();
+                    int quantite = eo["quantite"].toInt(1);
+                    QJsonArray prodIds = eo["produits"].toArray();
+                    for (const QJsonValue &pidVal : prodIds) {
+                        QString pid = pidVal.toString();
+                        if (!idToProduct.contains(pid))
+                            continue;
+                        std::shared_ptr<Product> p = idToProduct[pid];
+                        // on ajoute le produit "quantite" fois → Palette::ajouterProduit
+                        for (int k = 0; k < quantite; ++k) {
+                            pal->ajouterProduit(p.get(), nullptr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    rebuildTreeView();
+
+    QMessageBox::information(this, tr("Import"),
+                             tr("Import JSON terminé avec succès."));
+}
+
+void MainWindow::on_actionGenerer_Palettes_Automatiquement_triggered()
+{
+    if (!m_paletteCtrl || !m_produitCtrl)
+        return;
+
+    QVector<std::shared_ptr<Product>> produits = m_produitCtrl->produits();
+
+    // ⬅️ Utilisation des vraies règles définies dans le constructeur
+    m_paletteCtrl->genererPalettesAutomatiquement(produits, &m_reglesCompat);
+
+    m_paletteCtrl->debugPrintPalettes();
+    rebuildTreeView();
+}
 

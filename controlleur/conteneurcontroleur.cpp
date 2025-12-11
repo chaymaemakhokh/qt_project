@@ -134,3 +134,8 @@ void ConteneurControleur::debugPrintConteneurs() const
 
     qDebug().noquote() << "================================";
 }
+void ConteneurControleur::vider()
+{
+    m_conteneurs.clear();
+}
+

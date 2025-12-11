@@ -43,9 +43,16 @@ public:
     QVector<std::shared_ptr<Palette>>
     rechercherParFiltre(const FiltrePalette &filtre) const;
 
+    Palette* trouverPaletteParId(const QString &id) const;
+
     bool supprimerPaletteParId(const QString &id);
 
     void debugPrintPalettes() const;
+    void vider();
+    void genererPalettesAutomatiquement(
+        const QVector<std::shared_ptr<Product>> &produits,
+        const ReglesCompatibilite *regles);
+
 
 private:
     QVector<std::shared_ptr<Palette>> m_palettes;

@@ -92,6 +92,16 @@ bool PaletteControleur::supprimerPaletteParId(const QString &id)
     return false;
 }
 
+Palette* PaletteControleur::trouverPaletteParId(const QString &id) const
+{
+    for (const auto &p : m_palettes) {
+        if (p && p->idPalette() == id)
+            return p.get();
+    }
+    return nullptr;
+}
+
+
 void PaletteControleur::debugPrintPalettes() const
 {
     qDebug().noquote() << "===== LISTE DES PALETTES =====";
@@ -111,4 +121,50 @@ void PaletteControleur::debugPrintPalettes() const
     }
 
     qDebug().noquote() << "================================";
+
 }
+
+void PaletteControleur::vider()
+{
+    m_palettes.clear();
+}
+
+void PaletteControleur::genererPalettesAutomatiquement(
+    const QVector<std::shared_ptr<Product>> &produits,
+    const ReglesCompatibilite *regles)
+{
+    int compteur = 1;
+
+    for (const auto &prod : produits)
+    {
+        if (!prod) continue;
+
+        bool placé = false;
+
+        // 1) Tenter de placer dans une palette existante
+        for (auto &p : m_palettes)
+        {
+            if (p && p->ajouterProduit(prod.get(), regles))
+            {
+                placé = true;
+                break;
+            }
+        }
+
+        // 2) Sinon créer une nouvelle palette
+        if (!placé)
+        {
+            QString newId = QString("AUTO%1").arg(compteur++);
+            auto nouvelle = std::make_shared<Palette>();
+            nouvelle->setIdPalette(newId);
+            nouvelle->setDestination("Auto");
+            nouvelle->setDateEnvoiPrevue(QDate::currentDate());
+            nouvelle->setCapaciteMax(200); // tu peux ajuster
+
+            nouvelle->ajouterProduit(prod.get(), regles);
+
+            m_palettes.append(nouvelle);
+        }
+    }
+}
+

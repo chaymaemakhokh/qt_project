@@ -534,7 +534,7 @@
      <x>0</x>
      <y>0</y>
      <width>745</width>
-     <height>26</height>
+     <height>17</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuCRUD">
@@ -545,7 +545,22 @@
     <addaction name="actionAjouter_Conteneur"/>
     <addaction name="actionAjouter_Palette"/>
    </widget>
+   <widget class="QMenu" name="menuFichier">
+    <property name="title">
+     <string>Fichier</string>
+    </property>
+    <addaction name="actionImporter_JSON"/>
+    <addaction name="actionExporter_JSON"/>
+   </widget>
+   <widget class="QMenu" name="menuPalette">
+    <property name="title">
+     <string>Palette</string>
+    </property>
+    <addaction name="actionGenerer_Palettes_Automatiquement"/>
+   </widget>
    <addaction name="menuCRUD"/>
+   <addaction name="menuFichier"/>
+   <addaction name="menuPalette"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionAjoute_Produit">
@@ -561,6 +576,27 @@
   <action name="actionAjouter_Palette">
    <property name="text">
     <string>Ajouter Palette</string>
+   </property>
+  </action>
+  <action name="actionImporter_JSON">
+   <property name="text">
+    <string>Importer JSON</string>
+   </property>
+  </action>
+  <action name="actionExporter_JSON">
+   <property name="text">
+    <string>Exporter JSON</string>
+   </property>
+  </action>
+  <action name="actionGenerer_Palettes_Automatiquement">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Generer Palettes automatiquement</string>
    </property>
   </action>
  </widget>

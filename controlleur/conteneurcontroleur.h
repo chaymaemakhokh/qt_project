@@ -47,12 +47,16 @@ public:
 
     bool supprimerProduitDansTousLesConteneursParId(const QString &idProduit);
 
+    Conteneur* trouverConteneurParId(const QString &id) const;
+
+    /******/
+    void vider();
+
+
 
     void debugPrintConteneurs() const;
 
 private:
-    Conteneur* trouverConteneurParId(const QString &id) const;
-
     QVector<std::shared_ptr<Conteneur>> m_conteneurs;
 };
 

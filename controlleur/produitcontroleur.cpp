@@ -148,6 +148,11 @@ bool ProduitControleur::supprimerProduitParId(const QString &id)
     return false;
 }
 
+void ProduitControleur::vider()
+{
+    m_produits.clear();
+}
+
 
 void ProduitControleur::debugPrintProduits() const
 {
