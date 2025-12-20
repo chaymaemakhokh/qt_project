@@ -1,38 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ajouterconteneur</class>
- <widget class="QDialog" name="ajouterconteneur">
+ <class>modifierconteneur</class>
+ <widget class="QDialog" name="modifierconteneur">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>549</width>
-    <height>223</height>
+    <width>448</width>
+    <height>156</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
-    <widget class="QLabel" name="IdConteneur">
-     <property name="text">
-      <string>IdConteneur :</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="IdConteneur_2"/>
-   </item>
    <item row="2" column="0">
     <widget class="QLabel" name="TypeConteneur">
      <property name="text">
       <string>TypeConteneur :</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="TypeConteneur_2"/>
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="CapaciteMax">
@@ -41,44 +28,51 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QDoubleSpinBox" name="CapaciteMax_2"/>
-   </item>
-   <item row="4" column="1">
-    <widget class="QPushButton" name="Creer">
+   <item row="1" column="0">
+    <widget class="QLabel" name="IdConteneur">
      <property name="text">
-      <string>Créer</string>
+      <string>IdConteneur :</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="2">
+   <item row="4" column="3">
     <widget class="QPushButton" name="Annuler">
      <property name="text">
       <string>Annuler</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="3">
+   <item row="4" column="2">
+    <widget class="QPushButton" name="Modifier">
+     <property name="text">
+      <string>Modifier</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="2">
+    <widget class="QLineEdit" name="IdConteneur_2"/>
+   </item>
+   <item row="0" column="1" colspan="2">
     <widget class="QLabel" name="Titre">
      <property name="font">
       <font>
        <family>Sitka</family>
-       <pointsize>18</pointsize>
-       <bold>true</bold>
-       <underline>false</underline>
+       <pointsize>13</pointsize>
+       <italic>false</italic>
+       <bold>false</bold>
+       <underline>true</underline>
       </font>
      </property>
      <property name="text">
-      <string>              Ajouter Conteneur :</string>
+      <string>Modifier Conteneur :</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="2">
-    <widget class="QCheckBox" name="checkBox_Id_Automatique">
-     <property name="text">
-      <string>Automatique</string>
-     </property>
-    </widget>
+   <item row="2" column="1" colspan="2">
+    <widget class="QComboBox" name="TypeConteneur_2"/>
+   </item>
+   <item row="3" column="1" colspan="2">
+    <widget class="QDoubleSpinBox" name="CapaciteMax_2"/>
    </item>
   </layout>
  </widget>

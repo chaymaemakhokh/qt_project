@@ -6,339 +6,190 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>684</width>
-    <height>690</height>
+    <width>570</width>
+    <height>462</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QLabel" name="Titre">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>20</y>
-     <width>301</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Sitka</family>
-     <pointsize>18</pointsize>
-     <bold>true</bold>
-     <underline>true</underline>
-    </font>
-   </property>
-   <property name="text">
-    <string>Ajouter Produit :</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>60</y>
-     <width>231</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Produit avec des caracteristiques</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_2">
-   <property name="geometry">
-    <rect>
-     <x>360</x>
-     <y>60</y>
-     <width>231</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Produit avec cycle de vie</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="IdProduit">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>150</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>IdProduit :</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="IdProduit_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>150</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="NomProduit">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>190</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>NomProduit :</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="NomProduit_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>190</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="TypeProduit">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>230</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>TypeProduit :</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="TypeProduit_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>230</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="CapaciteMax">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>270</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>CapaciteMax :</string>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="CapaciteMax_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>270</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="Etat">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>310</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Etat :</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="Etat_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>310</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="Poids">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>350</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Poids :</string>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="Poids_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>350</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="Volume">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>390</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Volume :</string>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="Volume_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>390</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="DateEntreeStock">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>430</y>
-     <width>101</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DateEntreeStock :</string>
-   </property>
-  </widget>
-  <widget class="QDateEdit" name="DateEntreeStock_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>430</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="ConditionsConservation">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>470</y>
-     <width>151</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>ConditionsConservation :</string>
-   </property>
-  </widget>
-  <widget class="QPlainTextEdit" name="ConditionsConservation_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>470</y>
-     <width>211</width>
-     <height>75</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="DatePeremption">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>470</y>
-     <width>151</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DatePeremption :</string>
-   </property>
-  </widget>
-  <widget class="QDateEdit" name="DatePeremption_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>470</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="Creer">
-   <property name="geometry">
-    <rect>
-     <x>410</x>
-     <y>620</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Créer</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="Annuler">
-   <property name="geometry">
-    <rect>
-     <x>550</x>
-     <y>620</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Annuler</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="DansQuelConteneur">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>110</y>
-     <width>121</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>DansQuelConteneur :</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="DansQuelConteneur_2">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>110</y>
-     <width>211</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="2" colspan="2">
+    <widget class="QComboBox" name="DansQuelConteneur_2"/>
+   </item>
+   <item row="7" column="2" colspan="2">
+    <widget class="QComboBox" name="Etat_2"/>
+   </item>
+   <item row="10" column="2" colspan="2">
+    <widget class="QDateEdit" name="DateEntreeStock_2"/>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="IdProduit">
+     <property name="text">
+      <string>IdProduit :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3" colspan="2">
+    <widget class="QCheckBox" name="checkBox_2">
+     <property name="text">
+      <string>Produit avec cycle de vie</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="TypeProduit">
+     <property name="text">
+      <string>TypeProduit :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="2" colspan="2">
+    <widget class="QDoubleSpinBox" name="Volume_2"/>
+   </item>
+   <item row="8" column="2" colspan="2">
+    <widget class="QDoubleSpinBox" name="Poids_2"/>
+   </item>
+   <item row="6" column="2" colspan="2">
+    <widget class="QDoubleSpinBox" name="CapaciteMax_2"/>
+   </item>
+   <item row="3" column="4">
+    <widget class="QCheckBox" name="checkBox_Id_Automatique">
+     <property name="text">
+      <string>Automatique</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="Poids">
+     <property name="text">
+      <string>Poids :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="DateEntreeStock">
+     <property name="text">
+      <string>DateEntreeStock :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" colspan="2">
+    <widget class="QLineEdit" name="NomProduit_2"/>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="Volume">
+     <property name="text">
+      <string>Volume :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QLabel" name="DansQuelConteneur">
+     <property name="text">
+      <string>DansQuelConteneur :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="CapaciteMax">
+     <property name="text">
+      <string>CapaciteMax :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" colspan="3">
+    <widget class="QLabel" name="Titre">
+     <property name="font">
+      <font>
+       <family>Sitka</family>
+       <pointsize>18</pointsize>
+       <bold>true</bold>
+       <underline>true</underline>
+      </font>
+     </property>
+     <property name="text">
+      <string>Ajouter Produit :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="3">
+    <widget class="QPushButton" name="Creer">
+     <property name="text">
+      <string>Créer</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="Etat">
+     <property name="text">
+      <string>Etat :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="4">
+    <widget class="QPushButton" name="Annuler">
+     <property name="text">
+      <string>Annuler</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" colspan="2">
+    <widget class="QLineEdit" name="IdProduit_2"/>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="NomProduit">
+     <property name="text">
+      <string>NomProduit :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="3">
+    <widget class="QCheckBox" name="checkBox">
+     <property name="text">
+      <string>Produit avec des caracteristiques</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2" colspan="2">
+    <widget class="QComboBox" name="TypeProduit_2"/>
+   </item>
+   <item row="11" column="0" colspan="4">
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="page_Caracteristiques">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="ConditionsConservation">
+         <property name="text">
+          <string>ConditionsConservation :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPlainTextEdit" name="ConditionsConservation_2"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_CycleDeVie">
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="DatePeremption">
+         <property name="text">
+          <string>DatePeremption :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDateEdit" name="DatePeremption_2"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

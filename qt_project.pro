@@ -28,7 +28,9 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     model/warehouseitem.cpp \
-    model/warehousemodel.cpp
+    model/warehousemodel.cpp \
+    modifierconteneur.cpp \
+    modifierproduit.cpp
 
 HEADERS += \
     ajouterconteneur.h \
@@ -48,13 +50,17 @@ HEADERS += \
     domain/warehouse.h \
     mainwindow.h \
     model/warehouseitem.h \
-    model/warehousemodel.h
+    model/warehousemodel.h \
+    modifierconteneur.h \
+    modifierproduit.h
 
 FORMS += \
     ajouterconteneur.ui \
     ajouterpalette.ui \
     ajouterproduit.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    modifierconteneur.ui \
+    modifierproduit.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

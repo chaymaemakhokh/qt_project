@@ -7,9 +7,7 @@ Conteneur::Conteneur(QObject *parent)
 {
 }
 
-QString Conteneur::idConteneur() const {
-    return m_idConteneur;
-}
+QString Conteneur::idConteneur() const { return m_idConteneur; }
 
 void Conteneur::setIdConteneur(const QString &id) {
     if (m_idConteneur == id) return;
@@ -17,9 +15,7 @@ void Conteneur::setIdConteneur(const QString &id) {
     emit conteneurChanged();
 }
 
-TypeConteneur Conteneur::type() const {
-    return m_type;
-}
+TypeConteneur Conteneur::type() const { return m_type; }
 
 void Conteneur::setType(TypeConteneur t) {
     if (m_type == t) return;
@@ -27,19 +23,16 @@ void Conteneur::setType(TypeConteneur t) {
     emit conteneurChanged();
 }
 
-double Conteneur::capaciteMax() const {
-    return m_capaciteMax;
-}
+double Conteneur::capaciteMax() const { return m_capaciteMax; }
 
 void Conteneur::setCapaciteMax(double c) {
-    if (qFuzzyCompare(m_capaciteMax, c)) return;
+    if (qFuzzyCompare(m_capaciteMax + 1.0, c + 1.0)) return;
     m_capaciteMax = c;
     emit conteneurChanged();
 }
 
-const QList<Product*>& Conteneur::produits() const {
-    return m_produits;
-}
+const QList<Product*>& Conteneur::produits() const { return m_produits; }
+
 
 double Conteneur::poidsTotal() const {
     double total = 0.0;
@@ -48,9 +41,23 @@ double Conteneur::poidsTotal() const {
     return total;
 }
 
+double Conteneur::capaciteUtilisee() const {
+    double used = 0.0;
+    for (Product *p : m_produits) {
+        if (p) used += p->capaciteMax();
+    }
+    return used;
+}
+
+double Conteneur::capaciteRestante() const {
+    return m_capaciteMax - capaciteUtilisee();
+}
+
 bool Conteneur::peutAjouter(Product *p) const {
     if (!p) return false;
-    return p->poids() + poidsTotal() <= m_capaciteMax;
+    const double capProduit = p->capaciteMax();
+    if (capProduit < 0.0) return false;
+    return (capaciteUtilisee() + capProduit) <= m_capaciteMax;
 }
 
 bool Conteneur::ajouterProduit(Product *p) {
@@ -91,4 +98,29 @@ bool Conteneur::retirerProduitParId(const QString &idProduit)
         emit conteneurChanged();
 
     return removed;
+}
+
+bool Conteneur::contientProduitId(const QString &idProduit) const
+{
+    const QString needle = idProduit.trimmed();
+    if (needle.isEmpty()) return false;
+
+    for (Product *p : m_produits) {
+        if (p && p->idProduit() == needle)
+            return true;
+    }
+    return false;
+}
+
+double Conteneur::capaciteUtiliseeSansProduit(const QString &idProduit) const
+{
+    const QString needle = idProduit.trimmed();
+    double used = 0.0;
+
+    for (Product *p : m_produits) {
+        if (!p) continue;
+        if (!needle.isEmpty() && p->idProduit() == needle) continue; // on ignore ce produit
+        used += p->capaciteMax();
+    }
+    return used;
 }

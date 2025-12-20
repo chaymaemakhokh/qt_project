@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>modifierproduit</class>
+ <widget class="QDialog" name="modifierproduit">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>765</width>
+    <height>417</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="3">
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="page_ProduitAvecCaracteristiques">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="1">
+        <widget class="QLabel" name="Titre">
+         <property name="font">
+          <font>
+           <family>SimSun</family>
+           <pointsize>24</pointsize>
+           <underline>true</underline>
+          </font>
+         </property>
+         <property name="text">
+          <string>Produit avec Caractéristiques :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="IdProduit">
+         <property name="text">
+          <string>IdProduit :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="IdProduit_2"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="NomProduit">
+         <property name="text">
+          <string>NomProduit :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="NomProduit_2"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="TypeProduit">
+         <property name="text">
+          <string>TypeProduit :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="TypeProduit_2"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="CapaciteMax">
+         <property name="text">
+          <string>CapaciteMax :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QDoubleSpinBox" name="CapaciteMax_2"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="Etat">
+         <property name="text">
+          <string>Etat :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="Etat_2"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="Poids">
+         <property name="text">
+          <string>Poids :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QDoubleSpinBox" name="Poids_2"/>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="Volume">
+         <property name="text">
+          <string>Volume :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QDoubleSpinBox" name="Volume_2"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="DateEntreeStock">
+         <property name="text">
+          <string>DateEntreeStock :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QDateEdit" name="DateEntreeStock_2"/>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="ConditionsConservation">
+         <property name="text">
+          <string>ConditionsConservation :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QTextEdit" name="ConditionsConservation_2"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_ProduitAvecCycleDeVie">
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="8" column="1">
+        <widget class="QDoubleSpinBox" name="Poids_4"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="TypeProduit_4"/>
+       </item>
+       <item row="10" column="1">
+        <widget class="QDateEdit" name="DateEntreeStock_4"/>
+       </item>
+       <item row="11" column="1">
+        <widget class="QDateEdit" name="DatePeremption_2"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="Poids_3">
+         <property name="text">
+          <string>Poids :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="Etat_3">
+         <property name="text">
+          <string>Etat :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="Titre_2">
+         <property name="font">
+          <font>
+           <family>SimSun</family>
+           <pointsize>24</pointsize>
+           <underline>true</underline>
+          </font>
+         </property>
+         <property name="text">
+          <string>Produit avec Cycle de Vie :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="TypeProduit_3">
+         <property name="text">
+          <string>TypeProduit :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="NomProduit_4"/>
+       </item>
+       <item row="9" column="1">
+        <widget class="QDoubleSpinBox" name="Volume_4"/>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="DateEntreeStock_3">
+         <property name="text">
+          <string>DateEntreeStock :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="Volume_3">
+         <property name="text">
+          <string>Volume :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="CapaciteMax_3">
+         <property name="text">
+          <string>CapaciteMax :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="NomProduit_3">
+         <property name="text">
+          <string>NomProduit :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="IdProduit_4"/>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="DatePeremption">
+         <property name="text">
+          <string>DatePeremption :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="Etat_4"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="IdProduit_3">
+         <property name="text">
+          <string>IdProduit :</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QDoubleSpinBox" name="CapaciteMax_4"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QPushButton" name="Annuler">
+     <property name="text">
+      <string>Annuler</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPushButton" name="Modifier">
+     <property name="text">
+      <string>Modifier</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

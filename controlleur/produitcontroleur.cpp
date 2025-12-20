@@ -1,5 +1,6 @@
 #include "produitcontroleur.h"
 #include <QDebug>
+#include <QRandomGenerator>
 
 ProduitControleur::ProduitControleur(QObject *parent)
     : QObject(parent)
@@ -153,6 +154,51 @@ void ProduitControleur::vider()
     m_produits.clear();
 }
 
+bool ProduitControleur::idExiste(const QString &id) const
+{
+    const QString needle = id.trimmed();
+    if (needle.isEmpty()) return false;
+
+    for (const auto &p : m_produits) {
+        if (p && p->idProduit().compare(needle, Qt::CaseInsensitive) == 0)
+            return true;
+    }
+    return false;
+}
+
+QString ProduitControleur::genererIdProduitUnique(int longueur) const
+{
+    // format: "P" + [A-Z0-9]{longueur}
+    static const QString chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    if (longueur < 4) longueur = 4;
+
+    QString id;
+    do {
+        QString suffix;
+        suffix.reserve(longueur);
+        for (int i = 0; i < longueur; ++i) {
+            int idx = QRandomGenerator::global()->bounded(chars.size());
+            suffix.append(chars[idx]);
+        }
+        id = "P" + suffix;
+    } while (idExiste(id));
+
+    return id;
+}
+
+
+QVector<std::shared_ptr<Product>> ProduitControleur::produitsParType(TypeProduit type) const
+{
+    QVector<std::shared_ptr<Product>> res;
+    for (const auto &p : m_produits) {
+        if (!p) continue;
+        if (p->type() == type)
+            res.push_back(p);
+    }
+    return res;
+}
+
 
 void ProduitControleur::debugPrintProduits() const
 {
@@ -171,4 +217,32 @@ void ProduitControleur::debugPrintProduits() const
         qDebug().noquote() << ligne;
     }
     qDebug().noquote() << "===============================";
+}
+
+bool ProduitControleur::idProduitExiste(const QString &id) const
+{
+    const QString needle = id.trimmed();
+    if (needle.isEmpty()) return false;
+
+    for (const auto &p : m_produits) {
+        if (p && p->idProduit() == needle)
+            return true;
+    }
+    return false;
+}
+
+std::shared_ptr<Product> ProduitControleur::trouverProduitSharedParId(const QString &id) const
+{
+    const QString needle = id.trimmed();
+    for (const auto &p : m_produits) {
+        if (p && p->idProduit() == needle)
+            return p;
+    }
+    return nullptr;
+}
+
+Product* ProduitControleur::trouverProduitParId(const QString &id) const
+{
+    auto sp = trouverProduitSharedParId(id);
+    return sp ? sp.get() : nullptr;
 }

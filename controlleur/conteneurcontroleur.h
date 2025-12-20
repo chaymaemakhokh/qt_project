@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <memory>
+#include <QString>
 
 #include "./domain/container.h"
 #include "./domain/enums.h"
@@ -12,9 +13,9 @@
 
 struct FiltreConteneur
 {
-    QString idPartiel;          // vide = pas de filtre sur l'id
+    QString idPartiel;
     bool filtrerParType = false;
-    TypeConteneur type;
+    TypeConteneur type = TypeConteneur::Normal;
 
     bool filtrerParCapacite = false;
     double capaciteMax = 0.0;
@@ -37,11 +38,7 @@ public:
     bool ajouterProduitAuConteneur(const QString &idConteneur,
                                    const std::shared_ptr<Product> &produit);
 
-    QVector<std::shared_ptr<Conteneur>>
-    rechercherParIdPartiel(const QString &idPartiel) const;
-
-    QVector<std::shared_ptr<Conteneur>>
-    rechercherParFiltre(const FiltreConteneur &filtre) const;
+    QVector<std::shared_ptr<Conteneur>> rechercherParFiltre(const FiltreConteneur &filtre) const;
 
     bool supprimerConteneurParId(const QString &id);
 
@@ -49,8 +46,18 @@ public:
 
     Conteneur* trouverConteneurParId(const QString &id) const;
 
+    bool peutAjouterProduitAuConteneur(const QString &idConteneur, double capaciteProduit) const;
+
+    bool peutModifierCapaciteProduit(const QString &idProduit,
+                                     double nouvelleCapacite,
+                                     QString *conteneurBloquant = nullptr,
+                                     double *capaciteRestante = nullptr) const;
+
     /******/
     void vider();
+
+    bool idExiste(const QString &id) const;
+    QString genererIdConteneurUnique(int longueur = 8) const;
 
 
 

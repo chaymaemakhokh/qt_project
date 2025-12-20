@@ -5,10 +5,6 @@
 
 class Product;
 
-/**
- * @brief Représente un conteneur dans l'entrepôt.
- * Stocke des Product* polymorphiques.
- */
 class Conteneur : public QObject
 {
     Q_OBJECT
@@ -17,27 +13,32 @@ public:
     explicit Conteneur(QObject *parent = nullptr);
     ~Conteneur() override = default;
 
-    // ----- Identité -----
     QString idConteneur() const;
     void setIdConteneur(const QString &id);
 
-    // ----- Type -----
     TypeConteneur type() const;
     void setType(TypeConteneur t);
 
-    // ----- Capacité -----
     double capaciteMax() const;
     void setCapaciteMax(double c);
 
-    // ----- Produits -----
     const QList<Product*>& produits() const;
 
     double poidsTotal() const;
+
+
+    double capaciteUtilisee() const;
+    double capaciteRestante() const;
+
+
     bool peutAjouter(Product *p) const;
     bool ajouterProduit(Product *p);
-    void retirerProduit(Product *p);
 
+    void retirerProduit(Product *p);
     bool retirerProduitParId(const QString &idProduit);
+
+    double capaciteUtiliseeSansProduit(const QString &idProduit) const;
+    bool contientProduitId(const QString &idProduit) const;
 
 signals:
     void conteneurChanged();

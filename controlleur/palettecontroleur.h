@@ -53,6 +53,9 @@ public:
         const QVector<std::shared_ptr<Product>> &produits,
         const ReglesCompatibilite *regles);
 
+    bool idExiste(const QString &id) const;
+    QString genererIdPaletteUnique(int longueur = 8) const;
+
 
 private:
     QVector<std::shared_ptr<Palette>> m_palettes;

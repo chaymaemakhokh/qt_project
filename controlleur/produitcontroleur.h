@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QVector>
 #include <memory>
+#include <QDate>
 
 #include "./domain/product.h"
 #include "./domain/produit_caracteristiques.h"
@@ -58,17 +59,26 @@ public:
         const QDate &datePeremption,
         EtatProduit etat);
 
-    QVector<std::shared_ptr<Product>>
-    rechercherParIdPartiel(const QString &idPartiel) const;
 
-    QVector<std::shared_ptr<Product>>
-    rechercherParFiltre(const FiltreProduit &filtre) const;
+
+    QVector<std::shared_ptr<Product>>rechercherParIdPartiel(const QString &idPartiel) const;
+
+    QVector<std::shared_ptr<Product>>rechercherParFiltre(const FiltreProduit &filtre) const;
 
     bool supprimerProduitParId(const QString &id);
 
     const QVector<std::shared_ptr<Product>>& produits() const { return m_produits; }
 
-     void vider();
+    bool idExiste(const QString &id) const;
+    QVector<std::shared_ptr<Product>> produitsParType(TypeProduit type) const;
+
+    QString genererIdProduitUnique(int longueur = 8) const;
+
+    std::shared_ptr<Product> trouverProduitSharedParId(const QString &id) const;
+    Product* trouverProduitParId(const QString &id) const;
+     bool idProduitExiste(const QString &id) const;
+
+    void vider();
 
     void debugPrintProduits() const;
 

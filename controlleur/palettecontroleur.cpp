@@ -2,6 +2,8 @@
 #include <QDebug>
 #include <QtGlobal>
 
+#include <QRandomGenerator>
+
 PaletteControleur::PaletteControleur(QObject *parent)
     : QObject(parent)
 {
@@ -166,5 +168,33 @@ void PaletteControleur::genererPalettesAutomatiquement(
             m_palettes.append(nouvelle);
         }
     }
+}
+
+bool PaletteControleur::idExiste(const QString &id) const
+{
+    const QString needle = id.trimmed();
+    if (needle.isEmpty()) return false;
+
+    for (const auto &p : m_palettes) {
+        if (p && p->idPalette().compare(needle, Qt::CaseInsensitive) == 0)
+            return true;
+    }
+    return false;
+}
+
+QString PaletteControleur::genererIdPaletteUnique(int longueur) const
+{
+    static const QString chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    QString id;
+    do {
+        id = "PL"; // ✅ commence par PA
+        for (int i = 0; i < longueur; ++i) {
+            int idx = QRandomGenerator::global()->bounded(chars.size());
+            id.append(chars[idx]);
+        }
+    } while (idExiste(id));
+
+    return id;
 }
 

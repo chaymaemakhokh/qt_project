@@ -25,12 +25,18 @@ private slots:
     void onCaracteristiquesToggled(bool checked);
     void onCycleDeVieToggled(bool checked);
 
+    void onIdAutoToggled(bool checked);
+
     void on_Annuler_clicked();
     void on_Creer_clicked();
 
 private:
     void updateTypeUI();
-    void remplirComboConteneurs();   // nouveau
+    void remplirComboConteneurs();
+
+
+    bool validerIdManuel(QString &idOut);
+    QString getOrCreateId();
 
     Ui::ajouterProduit *ui;
     ProduitControleur   *m_ctrl;

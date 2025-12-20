@@ -1,5 +1,8 @@
 #include "conteneurcontroleur.h"
 #include <QDebug>
+#include <QtGlobal>
+
+#include <QRandomGenerator>
 
 ConteneurControleur::ConteneurControleur(QObject *parent)
     : QObject(parent)
@@ -39,48 +42,38 @@ bool ConteneurControleur::ajouterProduitAuConteneur(
     return c->ajouterProduit(produit.get());
 }
 
-QVector<std::shared_ptr<Conteneur>>
-ConteneurControleur::rechercherParIdPartiel(const QString &idPartiel) const
-{
-    QVector<std::shared_ptr<Conteneur>> res;
-    const QString pattern = idPartiel.trimmed();
-
-    for (const auto &c : m_conteneurs) {
-        if (!c) continue;
-        if (pattern.isEmpty() ||
-            c->idConteneur().contains(pattern, Qt::CaseInsensitive)) {
-            res.push_back(c);
-        }
-    }
-    return res;
-}
 
 QVector<std::shared_ptr<Conteneur>>
 ConteneurControleur::rechercherParFiltre(const FiltreConteneur &f) const
 {
     QVector<std::shared_ptr<Conteneur>> res;
-    const QString pattern = f.idPartiel.trimmed();
 
-    for (const auto &c : m_conteneurs) {
+    const QString idNeedle = f.idPartiel.trimmed();
+
+    for (const auto &c : m_conteneurs)
+    {
         if (!c) continue;
 
         bool ok = true;
 
-        // Id partiel
-        if (!pattern.isEmpty() &&
-            !c->idConteneur().contains(pattern, Qt::CaseInsensitive)) {
-            ok = false;
+        // 1) ID partiel (contains)
+        if (!idNeedle.isEmpty()) {
+            // contains insensible à la casse (tu peux mettre CaseSensitive si tu veux)
+            if (!c->idConteneur().contains(idNeedle, Qt::CaseInsensitive))
+                ok = false;
         }
 
-        // Type
-        if (ok && f.filtrerParType && c->type() != f.type) {
-            ok = false;
+        // 2) Type exact
+        if (ok && f.filtrerParType) {
+            if (c->type() != f.type)
+                ok = false;
         }
 
-        // Capacité max (égalité stricte pour l'instant)
-        if (ok && f.filtrerParCapacite &&
-            !qFuzzyCompare(c->capaciteMax() + 1.0, f.capaciteMax + 1.0)) {
-            ok = false;
+        // 3) Capacité exacte
+        if (ok && f.filtrerParCapacite) {
+            // exact "numérique" (tolérance) pour éviter les bugs de double
+            if (!qFuzzyCompare(c->capaciteMax() + 1.0, f.capaciteMax + 1.0))
+                ok = false;
         }
 
         if (ok)
@@ -134,6 +127,70 @@ void ConteneurControleur::debugPrintConteneurs() const
 
     qDebug().noquote() << "================================";
 }
+
+bool ConteneurControleur::peutAjouterProduitAuConteneur(const QString &idConteneur,
+                                                        double capaciteProduit) const
+{
+    Conteneur *c = trouverConteneurParId(idConteneur);
+    if (!c) return false;
+    return capaciteProduit >= 0.0 && capaciteProduit <= c->capaciteRestante();
+}
+
+bool ConteneurControleur::idExiste(const QString &id) const
+{
+    const QString needle = id.trimmed();
+    if (needle.isEmpty()) return false;
+
+    for (const auto &c : m_conteneurs) {
+        if (c && c->idConteneur().compare(needle, Qt::CaseInsensitive) == 0)
+            return true;
+    }
+    return false;
+}
+
+QString ConteneurControleur::genererIdConteneurUnique(int longueur) const
+{
+    static const QString chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    QString id;
+    do {
+        id = "C"; // ✅ commence par C
+        for (int i = 0; i < longueur; ++i) {
+            int idx = QRandomGenerator::global()->bounded(chars.size());
+            id.append(chars[idx]);
+        }
+    } while (idExiste(id));
+
+    return id;
+}
+
+bool ConteneurControleur::peutModifierCapaciteProduit(const QString &idProduit,
+                                                      double nouvelleCapacite,
+                                                      QString *conteneurBloquant,
+                                                      double *capaciteRestante) const
+{
+    const QString pid = idProduit.trimmed();
+    if (pid.isEmpty()) return true; // rien à vérifier
+    if (nouvelleCapacite < 0.0) return false;
+
+    for (const auto &csp : m_conteneurs) {
+        if (!csp) continue;
+        Conteneur *c = csp.get();
+        if (!c->contientProduitId(pid)) continue;
+
+        const double usedSans = c->capaciteUtiliseeSansProduit(pid);
+        const double capMax = c->capaciteMax();
+        const double restanteApresSans = capMax - usedSans;
+
+        if (usedSans + nouvelleCapacite > capMax + 1e-9) {
+            if (conteneurBloquant) *conteneurBloquant = c->idConteneur();
+            if (capaciteRestante) *capaciteRestante = restanteApresSans;
+            return false;
+        }
+    }
+    return true;
+}
+
 void ConteneurControleur::vider()
 {
     m_conteneurs.clear();

@@ -4,6 +4,8 @@
 #include "./controlleur/produitcontroleur.h"
 #include "./controlleur/conteneurcontroleur.h"
 #include <QVariant>
+#include <QCheckBox>
+#include <QMessageBox>
 
 
 ajouterProduit::ajouterProduit(ProduitControleur *prodCtrl,
@@ -16,6 +18,9 @@ ajouterProduit::ajouterProduit(ProduitControleur *prodCtrl,
 {
     ui->setupUi(this);
 
+    ui->DateEntreeStock_2->setDate(QDate::currentDate());
+    ui->DatePeremption_2->setDate(QDate::currentDate().addYears(1));
+
     // état initial des checkBox (comme tu avais)
     ui->checkBox->setChecked(true);
     ui->checkBox_2->setChecked(false);
@@ -24,6 +29,14 @@ ajouterProduit::ajouterProduit(ProduitControleur *prodCtrl,
             this,           &ajouterProduit::onCaracteristiquesToggled);
     connect(ui->checkBox_2, &QCheckBox::toggled,
             this,           &ajouterProduit::onCycleDeVieToggled);
+
+
+    if (ui->checkBox_Id_Automatique) {
+        ui->checkBox_Id_Automatique->setChecked(true);
+        connect(ui->checkBox_Id_Automatique, &QCheckBox::toggled,
+                this, &ajouterProduit::onIdAutoToggled);
+        onIdAutoToggled(true);
+    }
 
     // remplir TypeProduit
     ui->TypeProduit_2->clear();
@@ -72,6 +85,20 @@ ajouterProduit::~ajouterProduit()
 //   Slots de gestion UI
 // ========================
 
+void ajouterProduit::onIdAutoToggled(bool checked)
+{
+    // si auto : on désactive la saisie manuelle
+    ui->IdProduit_2->setEnabled(!checked);
+
+    if (checked) {
+        ui->IdProduit_2->clear();
+        ui->IdProduit_2->setPlaceholderText("ID généré automatiquement");
+    } else {
+        ui->IdProduit_2->setPlaceholderText("Ex: PABC123");
+        ui->IdProduit_2->setFocus();
+    }
+}
+
 void ajouterProduit::onCaracteristiquesToggled(bool checked)
 {
     // On veut toujours exactement UN type sélectionné.
@@ -119,19 +146,13 @@ void ajouterProduit::onCycleDeVieToggled(bool checked)
 void ajouterProduit::updateTypeUI()
 {
     const bool caracteristiques = ui->checkBox->isChecked();
-    const bool cycleDeVie       = ui->checkBox_2->isChecked();
 
-    // Produit avec caractéristiques :
-    //  -> on AFFICHE ConditionsConservation
-    //  -> on CACHE DatePeremption
-    ui->ConditionsConservation->setVisible(caracteristiques);
-    ui->ConditionsConservation_2->setVisible(caracteristiques);
-
-    // Produit avec cycle de vie :
-    //  -> on CACHE ConditionsConservation
-    //  -> on AFFICHE DatePeremption
-    ui->DatePeremption->setVisible(cycleDeVie);
-    ui->DatePeremption_2->setVisible(cycleDeVie);
+    // ✅ Avec stackedWidget : on change juste de page
+    if (caracteristiques) {
+        ui->stackedWidget->setCurrentWidget(ui->page_Caracteristiques);
+    } else {
+        ui->stackedWidget->setCurrentWidget(ui->page_CycleDeVie);
+    }
 }
 
 void ajouterProduit::on_Annuler_clicked()
@@ -139,18 +160,89 @@ void ajouterProduit::on_Annuler_clicked()
     this->close();
 }
 
+bool ajouterProduit::validerIdManuel(QString &idOut)
+{
+    idOut = ui->IdProduit_2->text().trimmed();
+
+    if (idOut.isEmpty()) {
+        QMessageBox::warning(this, tr("ID invalide"),
+                             tr("Veuillez saisir un ID produit."));
+        return false;
+    }
+
+    if (m_ctrl && m_ctrl->idExiste(idOut)) {
+        QMessageBox::warning(this, tr("ID déjà utilisé"),
+                             tr("L'ID \"%1\" existe déjà.\nVeuillez en choisir un autre.")
+                                 .arg(idOut));
+        ui->IdProduit_2->setFocus();
+        ui->IdProduit_2->selectAll();
+        return false;
+    }
+
+    return true;
+}
+
+QString ajouterProduit::getOrCreateId()
+{
+    const bool autoId = (ui->checkBox_Id_Automatique && ui->checkBox_Id_Automatique->isChecked());
+
+    if (autoId) {
+        // ✅ génère un ID unique garanti
+        return m_ctrl ? m_ctrl->genererIdProduitUnique(8) : QString();
+    }
+
+    QString manual;
+    if (!validerIdManuel(manual))
+        return QString();
+
+    return manual;
+}
+
 
 void ajouterProduit::on_Creer_clicked()
 {
-    if (!m_ctrl) {
-        accept();
+    if (!m_ctrl) { accept(); return; }
+
+    // ---------------------------
+    // 1) ID auto / manuel + unicité
+    // ---------------------------
+    const bool idAuto = (ui->checkBox_Id_Automatique && ui->checkBox_Id_Automatique->isChecked());
+
+    QString id;
+    if (idAuto) {
+        id = m_ctrl->genererIdProduitUnique(8);   // P + 8 caractères
+        // Optionnel : afficher l'id généré dans le champ (même s'il est disabled)
+        ui->IdProduit_2->setText(id);
+    } else {
+        id = ui->IdProduit_2->text().trimmed();
+
+        if (id.isEmpty()) {
+            QMessageBox::warning(this, tr("ID invalide"),
+                                 tr("Veuillez saisir un ID produit."));
+            return;
+        }
+
+        if (m_ctrl->idExiste(id)) {
+            QMessageBox::warning(this, tr("ID déjà utilisé"),
+                                 tr("L'ID \"%1\" existe déjà.\nVeuillez en choisir un autre.")
+                                     .arg(id));
+            ui->IdProduit_2->setFocus();
+            ui->IdProduit_2->selectAll();
+            return;
+        }
+    }
+
+    // ---------------------------
+    // 2) Récupération des champs
+    // ---------------------------
+    QString nom = ui->NomProduit_2->text().trimmed();
+    if (nom.isEmpty()) {
+        QMessageBox::warning(this, tr("Nom invalide"),
+                             tr("Veuillez saisir le nom du produit."));
         return;
     }
 
-    QString id   = ui->IdProduit_2->text();
-    QString nom  = ui->NomProduit_2->text();
-
-    double capaciteMax = ui->CapaciteMax_2->value();
+    double capaciteMax = ui->CapaciteMax_2->value();   // ✅ capacité du produit
     double poids       = ui->Poids_2->value();
     double volume      = ui->Volume_2->value();
 
@@ -159,17 +251,41 @@ void ajouterProduit::on_Creer_clicked()
     TypeProduit type = ui->TypeProduit_2->currentData().value<TypeProduit>();
     EtatProduit etat = ui->Etat_2->currentData().value<EtatProduit>();
 
-    bool isCaracteristiques = ui->checkBox->isChecked();
-    bool isCycleDeVie       = ui->checkBox_2->isChecked();
-
-    // ID du conteneur choisi (peut être vide)
-    QString idConteneur = ui->DansQuelConteneur_2->currentData().toString();
+    // conteneur choisi
+    QString idConteneur = ui->DansQuelConteneur_2->currentData().toString().trimmed();
     if (idConteneur.isEmpty())
-        idConteneur = ui->DansQuelConteneur_2->currentText();
+        idConteneur = ui->DansQuelConteneur_2->currentText().trimmed();
 
+    // ---------------------------
+    // 3) Vérification capacité AVANT création (pour les 2 pages)
+    // ---------------------------
+    if (!idConteneur.isEmpty() && m_conteneurCtrl) {
+        const bool okCap = m_conteneurCtrl->peutAjouterProduitAuConteneur(idConteneur, capaciteMax);
+        if (!okCap) {
+            Conteneur *c = m_conteneurCtrl->trouverConteneurParId(idConteneur);
+            const double restante = c ? c->capaciteRestante() : 0.0;
+
+            QMessageBox::warning(
+                this,
+                tr("Ajout impossible"),
+                tr("Le conteneur %1 n'a pas assez de capacité.\n"
+                   "Capacité restante = %2\n"
+                   "Capacité produit = %3")
+                    .arg(idConteneur)
+                    .arg(restante)
+                    .arg(capaciteMax)
+                );
+            return; // ❌ on ne crée pas le produit
+        }
+    }
+
+    // ---------------------------
+    // 4) Création du produit
+    // ---------------------------
     std::shared_ptr<Product> produit;
 
-    if (isCaracteristiques) {
+    if (ui->checkBox->isChecked()) {
+        // Caractéristiques
         QString conditions = ui->ConditionsConservation_2->toPlainText();
 
         produit = m_ctrl->ajouterProduitAvecCaracteristiques(
@@ -179,8 +295,8 @@ void ajouterProduit::on_Creer_clicked()
             dateEntree,
             etat
             );
-    }
-    else if (isCycleDeVie) {
+    } else {
+        // Cycle de vie
         QDate datePeremption = ui->DatePeremption_2->date();
 
         produit = m_ctrl->ajouterProduitAvecCycleDeVie(
@@ -192,11 +308,21 @@ void ajouterProduit::on_Creer_clicked()
             );
     }
 
-    // si un conteneur est choisi, on y ajoute le produit
+    // ---------------------------
+    // 5) Ajout au conteneur
+    // ---------------------------
     if (produit && m_conteneurCtrl && !idConteneur.isEmpty()) {
-        m_conteneurCtrl->ajouterProduitAuConteneur(idConteneur, produit);
+        const bool okAjout = m_conteneurCtrl->ajouterProduitAuConteneur(idConteneur, produit);
+        if (!okAjout) {
+            // sécurité (normalement jamais si le check avant est bon)
+            QMessageBox::warning(this, tr("Ajout impossible"),
+                                 tr("Impossible d'ajouter le produit au conteneur %1.")
+                                     .arg(idConteneur));
+            return;
+        }
     }
 
     accept();
 }
+
 

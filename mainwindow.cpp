@@ -4,6 +4,9 @@
 #include "ajouterproduit.h"
 #include "ajouterconteneur.h"
 #include "ajouterpalette.h"
+#include "modifierproduit.h"
+#include "modifierconteneur.h"
+
 
 #include <QFileDialog>
 #include <QFile>
@@ -29,6 +32,43 @@
 #include <QHeaderView>
 #include <QDialogButtonBox>
 #include <QMessageBox>
+#include <QPushButton>
+
+
+
+
+// =====================================================
+// Helper : dialog + table “responsive” + colonnes visibles
+// =====================================================
+static void configureTableDialog(QDialog &dlg, QTableWidget *table,
+                                 int w = 1100, int h = 550)
+{
+    dlg.setMinimumSize(900, 450);
+    dlg.resize(w, h);
+
+    if (!table) return;
+
+    table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    table->setWordWrap(false);
+    table->setTextElideMode(Qt::ElideRight);
+
+    table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    // Colonnes: adapte à contenu + garde la dernière “stretch”
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    table->horizontalHeader()->setStretchLastSection(true);
+
+    // Lignes: hauteur auto si texte multi-ligne (si tu en remets un jour)
+    table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    // ScrollBar horizontale si besoin
+    table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -39,8 +79,19 @@ MainWindow::MainWindow(QWidget *parent)
     , m_treeModel(new QStandardItemModel(this))
 {
     ui->setupUi(this);
+    ui->TypeConteneur_2->clear();
+    for (TypeConteneur t : {TypeConteneur::Normal,
+                            TypeConteneur::Froid,
+                            TypeConteneur::Fragile,
+                            TypeConteneur::Autre})
+    {
+        ui->TypeConteneur_2->addItem(toString(t), QVariant::fromValue(t));
+    }
 
-    // ====== RÈGLES DE COMPATIBILITÉ RÉALISTES ======
+    setMinimumSize(900, 600);
+    adjustSize();
+    resize(1100, 700);
+
     // Alimentaire ⛔ Medicament
     m_reglesCompat.definirCompatibilite(
         TypeProduit::Alimentaire,
@@ -53,23 +104,16 @@ MainWindow::MainWindow(QWidget *parent)
         TypeProduit::Electronique,
         false);
 
-    // Medicament ⛔ Electronique (si tu veux aussi les séparer)
+    // Medicament ⛔ Electronique
     m_reglesCompat.definirCompatibilite(
         TypeProduit::Medicament,
         TypeProduit::Electronique,
         false);
 
-    // Tout ce qui est Autre reste compatible avec tout par défaut
-    // (ReglesCompatibilite::areCompatible() renvoie true si aucune règle trouvée)
-
-    ui->treeView->setModel(m_treeModel);
-    ui->treeView->setHeaderHidden(false);
-
     ui->treeView->setModel(m_treeModel);
     ui->treeView->setHeaderHidden(false);
 
     on_comboBoxTypeModel_currentTextChanged(ui->comboBoxTypeModel->currentText());
-
     rebuildTreeView();
 }
 
@@ -80,22 +124,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_comboBoxTypeModel_currentTextChanged(const QString &text)
 {
-    bool showConteneur = false;
-    bool showPalette   = false;
-    bool showProduit   = false;
-
-    if (text == "Conteneur") {
-        showConteneur = true;
-    } else if (text == "Palette") {
-        showPalette = true;
-    } else if (text == "Produit") {
-        showProduit = true;
+    if (text == "Tous") {
+        ui->stackedWidget->setCurrentWidget(ui->page_Vide);
+        ui->IdTous->setVisible(true);
+        ui->IdTous_2->setVisible(true);
+        return;
     }
 
-    ui->groupBox_Conteneur->setVisible(showConteneur);
-    ui->groupBox_Palette->setVisible(showPalette);
-    ui->groupBox_Produit->setVisible(showProduit);
+    ui->stackedWidget->setVisible(true);
+    ui->IdTous->setVisible(false);
+    ui->IdTous_2->setVisible(false);
 
+    if (text == "Conteneur") {
+        ui->stackedWidget->setCurrentWidget(ui->page_Conteneur);
+    } else if (text == "Palette") {
+        ui->stackedWidget->setCurrentWidget(ui->page_Palette);
+    } else if (text == "Produit") {
+        ui->stackedWidget->setCurrentWidget(ui->page_Produit);
+    } else {
+        ui->stackedWidget->setCurrentWidget(ui->page_Vide);
+    }
 }
 
 void MainWindow::rebuildTreeView()
@@ -131,7 +179,7 @@ void MainWindow::rebuildTreeView()
         }
     }
 
-    // 2) Palettes (au même niveau que les conteneurs, après eux)
+    // 2) Palettes (après conteneurs)
     if (m_paletteCtrl) {
         const auto &pals = m_paletteCtrl->palettes();
 
@@ -143,8 +191,6 @@ void MainWindow::rebuildTreeView()
             QStandardItem *palItem = new QStandardItem(palLabel);
             palItem->setData(pPtr->idPalette(), Qt::UserRole + 1);
 
-            // Pour l'instant, on n'affiche pas encore les éléments de palette
-            // (on les ajoutera plus tard).
             m_treeModel->appendRow(palItem);
         }
     }
@@ -173,7 +219,7 @@ void MainWindow::on_actionAjouter_Conteneur_triggered()
 
 void MainWindow::on_actionAjouter_Palette_triggered()
 {
-    ajouterpalette dlg(m_paletteCtrl, this);
+    ajouterpalette dlg(m_paletteCtrl, m_produitCtrl, this);
     if (dlg.exec() == QDialog::Accepted) {
         m_paletteCtrl->debugPrintPalettes();
         rebuildTreeView();
@@ -186,13 +232,15 @@ void MainWindow::on_Rechercher_clicked()
 
     if (mode == "Tous") {
         const QString pattern = ui->IdTous_2->text().trimmed();
+        FiltreConteneur f;
+        f.idPartiel = pattern;
 
         QVector<std::shared_ptr<Conteneur>> conts;
         QVector<std::shared_ptr<Product>>   prods;
         QVector<std::shared_ptr<Palette>>   pals;
 
         if (m_conteneurCtrl)
-            conts = m_conteneurCtrl->rechercherParIdPartiel(pattern);
+            conts = m_conteneurCtrl->rechercherParFiltre(f);
         if (m_produitCtrl)
             prods = m_produitCtrl->rechercherParIdPartiel(pattern);
         if (m_paletteCtrl)
@@ -202,9 +250,9 @@ void MainWindow::on_Rechercher_clicked()
     }
     else if (mode == "Conteneur") {
         FiltreConteneur f;
+
         f.idPartiel = ui->IdConteneur_2->text().trimmed();
 
-        // on filtre TOUJOURS par type (plus de "TOUS" dans cette combo)
         f.filtrerParType = true;
         f.type = ui->TypeConteneur_2->currentData().value<TypeConteneur>();
 
@@ -220,20 +268,16 @@ void MainWindow::on_Rechercher_clicked()
     else if (mode == "Produit") {
         FiltreProduit f;
 
-        // Id
         f.idPartiel = ui->IdProduit_2->text().trimmed();
 
-        // TypeProduit : "TOUS" => pas de filtre
         QString typeText = ui->TypeProduit_2->currentText();
         if (typeText != "TOUS") {
             f.filtrerParType = true;
             f.type = typeProduitFromString(typeText);
         }
 
-        // Nom
         f.nomPartiel = ui->NomProduit_2->text().trimmed();
 
-        // DateEntreeStock : 01/01/2000 => pas de filtre
         QDate defaultDate(2000, 1, 1);
         QDate dEntree = ui->DateEntreeStockProduit_2->date();
         if (dEntree != defaultDate) {
@@ -241,7 +285,6 @@ void MainWindow::on_Rechercher_clicked()
             f.dateEntree = dEntree;
         }
 
-        // Capacité max (QLineEdit)
         bool ok = false;
         double cap = ui->CapaciteMaxProduit_2->text().trimmed().toDouble(&ok);
         if (ok) {
@@ -249,7 +292,6 @@ void MainWindow::on_Rechercher_clicked()
             f.capaciteMax = cap;
         }
 
-        // Poids
         ok = false;
         double poids = ui->PoidsProduit_2->text().trimmed().toDouble(&ok);
         if (ok) {
@@ -257,7 +299,6 @@ void MainWindow::on_Rechercher_clicked()
             f.poids = poids;
         }
 
-        // Volume
         ok = false;
         double vol = ui->VolumeProduit_2->text().trimmed().toDouble(&ok);
         if (ok) {
@@ -271,13 +312,9 @@ void MainWindow::on_Rechercher_clicked()
     else if (mode == "Palette") {
         FiltrePalette f;
 
-        // Id
         f.idPartiel = ui->IdPalette_2->text().trimmed();
-
-        // Destination
         f.destinationPartielle = ui->DestinationPalette_2->text().trimmed();
 
-        // DateEnvoiPrevue : 01/01/2000 => pas de filtre
         QDate defaultDate(2000, 1, 1);
         QDate dEnvoi = ui->DateEnvoiPrevuePalette_2->date();
         if (dEnvoi != defaultDate) {
@@ -285,7 +322,6 @@ void MainWindow::on_Rechercher_clicked()
             f.dateEnvoi = dEnvoi;
         }
 
-        // Capacité max
         bool ok = false;
         double cap = ui->CapaciteMaxPalette_2->text().trimmed().toDouble(&ok);
         if (ok) {
@@ -320,6 +356,7 @@ void MainWindow::afficherResultatsTous(
     QVBoxLayout *layout = new QVBoxLayout(&dlg);
 
     QTabWidget *tabs = new QTabWidget(&dlg);
+    tabs->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     layout->addWidget(tabs);
 
     // --- Conteneurs ---
@@ -327,17 +364,15 @@ void MainWindow::afficherResultatsTous(
         QTableWidget *table = new QTableWidget(conts.size(), 3, &dlg);
         table->setHorizontalHeaderLabels(
             QStringList() << "Id" << "Type" << "CapaciteMax");
-        table->horizontalHeader()->setStretchLastSection(true);
 
         for (int i = 0; i < conts.size(); ++i) {
             const auto &c = conts[i];
             table->setItem(i, 0, new QTableWidgetItem(c->idConteneur()));
             table->setItem(i, 1, new QTableWidgetItem(toString(c->type())));
             table->setItem(i, 2, new QTableWidgetItem(QString::number(c->capaciteMax())));
-
-            // TODO plus tard : ajouter 2 colonnes avec des boutons d'action
         }
 
+        configureTableDialog(dlg, table, 1100, 550);
         tabs->addTab(table, tr("Conteneurs"));
     }
 
@@ -346,7 +381,6 @@ void MainWindow::afficherResultatsTous(
         QTableWidget *table = new QTableWidget(prods.size(), 3, &dlg);
         table->setHorizontalHeaderLabels(
             QStringList() << "Id" << "Nom" << "Type");
-        table->horizontalHeader()->setStretchLastSection(true);
 
         for (int i = 0; i < prods.size(); ++i) {
             const auto &p = prods[i];
@@ -355,6 +389,7 @@ void MainWindow::afficherResultatsTous(
             table->setItem(i, 2, new QTableWidgetItem(toString(p->type())));
         }
 
+        configureTableDialog(dlg, table, 1100, 550);
         tabs->addTab(table, tr("Produits"));
     }
 
@@ -363,7 +398,6 @@ void MainWindow::afficherResultatsTous(
         QTableWidget *table = new QTableWidget(pals.size(), 3, &dlg);
         table->setHorizontalHeaderLabels(
             QStringList() << "Id" << "Destination" << "Date envoi");
-        table->horizontalHeader()->setStretchLastSection(true);
 
         for (int i = 0; i < pals.size(); ++i) {
             const auto &p = pals[i];
@@ -373,6 +407,7 @@ void MainWindow::afficherResultatsTous(
                                      p->dateEnvoiPrevue().toString(Qt::ISODate)));
         }
 
+        configureTableDialog(dlg, table, 1100, 550);
         tabs->addTab(table, tr("Palettes"));
     }
 
@@ -397,19 +432,17 @@ void MainWindow::afficherListeConteneurs(
     dlg.setWindowTitle(tr("Conteneurs trouvés"));
     QVBoxLayout *layout = new QVBoxLayout(&dlg);
 
-    // 5 colonnes data + 2 actions
     QTableWidget *table = new QTableWidget(conts.size(), 7, &dlg);
     table->setHorizontalHeaderLabels(
         QStringList() << "Id" << "Type" << "CapaciteMax"
                       << "NbProduits" << "PoidsTotal"
                       << "Editer" << "Supprimer");
-    table->horizontalHeader()->setStretchLastSection(true);
 
     for (int i = 0; i < conts.size(); ++i) {
         const auto &c = conts[i];
         if (!c) continue;
 
-        QString id = c->idConteneur();
+        const QString id = c->idConteneur();
 
         table->setItem(i, 0, new QTableWidgetItem(id));
         table->setItem(i, 1, new QTableWidgetItem(toString(c->type())));
@@ -417,7 +450,6 @@ void MainWindow::afficherListeConteneurs(
         table->setItem(i, 3, new QTableWidgetItem(QString::number(c->produits().size())));
         table->setItem(i, 4, new QTableWidgetItem(QString::number(c->poidsTotal())));
 
-        // Boutons actions
         QPushButton *btnEdit = new QPushButton("✏", table);
         QPushButton *btnDel  = new QPushButton("🗑", table);
         btnEdit->setFlat(true);
@@ -426,26 +458,46 @@ void MainWindow::afficherListeConteneurs(
         table->setCellWidget(i, 5, btnEdit);
         table->setCellWidget(i, 6, btnDel);
 
-        // TODO plus tard : connecter btnEdit pour ouvrir un dialog d'édition
+        // ✅ EDIT
+        connect(btnEdit, &QPushButton::clicked, this, [this, id]() {
+            if (!m_conteneurCtrl) return;
 
-        connect(btnDel, &QPushButton::clicked, this,
-                [this, id, table]() {
-                    if (!m_conteneurCtrl) return;
-                    if (!m_conteneurCtrl->supprimerConteneurParId(id)) return;
+            modifierconteneur dlg(id, m_conteneurCtrl, this);
+            if (dlg.exec() == QDialog::Accepted) {
+                rebuildTreeView();
+                on_Rechercher_clicked(); // refresh la liste
+            }
+        });
 
-                    rebuildTreeView();
+        // ✅ DELETE
+        connect(btnDel, &QPushButton::clicked, this, [this, id, table]() {
+            if (!m_conteneurCtrl) return;
 
-                    // enlever la ligne de la table
-                    for (int r = 0; r < table->rowCount(); ++r) {
-                        QTableWidgetItem *item = table->item(r, 0);
-                        if (item && item->text() == id) {
-                            table->removeRow(r);
-                            break;
-                        }
-                    }
-                });
+            const auto rep = QMessageBox::question(
+                this,
+                tr("Confirmer la suppression"),
+                tr("Supprimer le conteneur %1 ?").arg(id),
+                QMessageBox::Yes | QMessageBox::No
+                );
+            if (rep != QMessageBox::Yes) return;
+
+            if (!m_conteneurCtrl->supprimerConteneurParId(id))
+                return;
+
+            rebuildTreeView();
+
+            // enlever la ligne de la table
+            for (int r = 0; r < table->rowCount(); ++r) {
+                QTableWidgetItem *item = table->item(r, 0);
+                if (item && item->text() == id) {
+                    table->removeRow(r);
+                    break;
+                }
+            }
+        });
     }
 
+    configureTableDialog(dlg, table, 1200, 600);
     layout->addWidget(table);
 
     QDialogButtonBox *buttons =
@@ -455,6 +507,7 @@ void MainWindow::afficherListeConteneurs(
 
     dlg.exec();
 }
+
 
 void MainWindow::afficherListeProduits(
     const QVector<std::shared_ptr<Product>> &prods)
@@ -473,7 +526,6 @@ void MainWindow::afficherListeProduits(
     table->setHorizontalHeaderLabels(
         QStringList() << "Id" << "Nom" << "Type" << "CapaciteMax"
                       << "Editer" << "Supprimer");
-    table->horizontalHeader()->setStretchLastSection(true);
 
     for (int i = 0; i < prods.size(); ++i) {
         const auto &p = prods[i];
@@ -494,23 +546,17 @@ void MainWindow::afficherListeProduits(
         table->setCellWidget(i, 4, btnEdit);
         table->setCellWidget(i, 5, btnDel);
 
-        // TODO plus tard : gestion de l'édition
-
         connect(btnDel, &QPushButton::clicked, this,
                 [this, id, table]() {
-                    // 1) retirer ce produit de tous les conteneurs
                     if (m_conteneurCtrl) {
                         m_conteneurCtrl->supprimerProduitDansTousLesConteneursParId(id);
                     }
 
-                    // 2) supprimer le produit du contrôleur produit
                     if (!m_produitCtrl || !m_produitCtrl->supprimerProduitParId(id))
                         return;
 
-                    // 3) mettre à jour l'arbre hiérarchique
                     rebuildTreeView();
 
-                    // 4) enlever la ligne de la table
                     for (int r = 0; r < table->rowCount(); ++r) {
                         QTableWidgetItem *item = table->item(r, 0);
                         if (item && item->text() == id) {
@@ -519,8 +565,32 @@ void MainWindow::afficherListeProduits(
                         }
                     }
                 });
+        connect(btnEdit, &QPushButton::clicked, this,
+                [this, id, table]() {
+
+                    modifierproduit dlg(id, m_produitCtrl, m_conteneurCtrl, this);
+
+                    if (dlg.exec() == QDialog::Accepted) {
+                        rebuildTreeView();
+
+                        for (int r = 0; r < table->rowCount(); ++r) {
+                            QTableWidgetItem *it = table->item(r, 0);
+                            if (!it) continue;
+                            if (it->text() != id) continue;
+
+                            Product *p2 = m_produitCtrl ? m_produitCtrl->trouverProduitParId(id) : nullptr;
+                            if (!p2) return;
+
+                            if (table->item(r, 1)) table->item(r, 1)->setText(p2->nom());
+                            if (table->item(r, 2)) table->item(r, 2)->setText(toString(p2->type()));
+                            if (table->item(r, 3)) table->item(r, 3)->setText(QString::number(p2->capaciteMax()));
+                            break;
+                        }
+                    }
+                });
     }
 
+    configureTableDialog(dlg, table, 1300, 650);
     layout->addWidget(table);
 
     QDialogButtonBox *buttons =
@@ -544,12 +614,10 @@ void MainWindow::afficherListePalettes(
     dlg.setWindowTitle(tr("Palettes trouvées"));
     QVBoxLayout *layout = new QVBoxLayout(&dlg);
 
-    // 7 colonnes : Id, Destination, Date, Capacité, Contenu, Editer, Supprimer
     QTableWidget *table = new QTableWidget(pals.size(), 7, &dlg);
     table->setHorizontalHeaderLabels(
         QStringList() << "Id" << "Destination" << "Date envoi" << "CapaciteMax"
                       << "Contenu" << "Editer" << "Supprimer");
-    table->horizontalHeader()->setStretchLastSection(true);
 
     for (int i = 0; i < pals.size(); ++i)
     {
@@ -565,22 +633,18 @@ void MainWindow::afficherListePalettes(
         table->setItem(i, 3, new QTableWidgetItem(
                                  QString::number(p->capaciteMax())));
 
-        // 👁 Bouton CONTENU
         QPushButton *btnContenu = new QPushButton("👁", table);
         btnContenu->setFlat(true);
         table->setCellWidget(i, 4, btnContenu);
 
-        // ✏ Bouton EDITER (à implémenter plus tard)
         QPushButton *btnEdit = new QPushButton("✏", table);
         btnEdit->setFlat(true);
         table->setCellWidget(i, 5, btnEdit);
 
-        // 🗑 Bouton SUPPRIMER
         QPushButton *btnDel = new QPushButton("🗑", table);
         btnDel->setFlat(true);
         table->setCellWidget(i, 6, btnDel);
 
-        // --- Action Bouton SUPPRIMER ---
         connect(btnDel, &QPushButton::clicked, this,
                 [this, id, table]() {
                     if (!m_paletteCtrl) return;
@@ -588,7 +652,6 @@ void MainWindow::afficherListePalettes(
 
                     rebuildTreeView();
 
-                    // Supprimer la ligne du tableau
                     for (int r = 0; r < table->rowCount(); ++r) {
                         QTableWidgetItem *item = table->item(r, 0);
                         if (item && item->text() == id) {
@@ -598,7 +661,6 @@ void MainWindow::afficherListePalettes(
                     }
                 });
 
-        // --- Action Bouton CONTENU ---
         connect(btnContenu, &QPushButton::clicked, this,
                 [p, this]() {
 
@@ -621,7 +683,6 @@ void MainWindow::afficherListePalettes(
                         tab->setItem(row, 0,
                                      new QTableWidgetItem(QString::number(el.quantite())));
 
-                        // Concaténer les noms des produits
                         QString noms;
                         for (Product *prod : el.produits()) {
                             if (prod)
@@ -633,6 +694,7 @@ void MainWindow::afficherListePalettes(
                                      new QTableWidgetItem(QString::number(el.poidsTotal())));
                     }
 
+                    configureTableDialog(d, tab, 1100, 550);
                     lay->addWidget(tab);
 
                     QDialogButtonBox *btn =
@@ -644,6 +706,7 @@ void MainWindow::afficherListePalettes(
                 });
     }
 
+    configureTableDialog(dlg, table, 1400, 650);
     layout->addWidget(table);
 
     QDialogButtonBox *buttons =
@@ -653,7 +716,6 @@ void MainWindow::afficherListePalettes(
 
     dlg.exec();
 }
-
 
 void MainWindow::on_actionExporter_JSON_triggered()
 {
@@ -934,4 +996,3 @@ void MainWindow::on_actionGenerer_Palettes_Automatiquement_triggered()
     m_paletteCtrl->debugPrintPalettes();
     rebuildTreeView();
 }
-
